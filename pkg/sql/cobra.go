@@ -3,8 +3,10 @@ package sql
 import (
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
+	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	"github.com/go-go-golems/glazed/pkg/cmds/middlewares"
 	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
+	"github.com/go-go-golems/sqleton/pkg/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -14,6 +16,7 @@ func BuildCobraCommandWithSqletonMiddlewares(
 ) (*cobra.Command, error) {
 	options_ := append([]cli.CobraParserOption{
 		cli.WithCobraMiddlewaresFunc(GetCobraCommandSqletonMiddlewares),
+		cli.WithCobraShortHelpLayers(layers.DefaultSlug, DbtSlug, SqlConnectionSlug, flags.SqlHelpersSlug),
 	}, options...)
 
 	return cli.BuildCobraCommandFromCommand(cmd, options_...)
