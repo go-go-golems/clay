@@ -1,12 +1,14 @@
-package fs
+package repositories
 
 import (
-	claycmds "github.com/go-go-golems/clay/pkg/cmds/locations"
+	"fmt"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/go-go-golems/glazed/pkg/help"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"io/fs"
 	"path/filepath"
 )
 
@@ -18,21 +20,47 @@ type UpdateCallback func(cmd cmds.Command) error
 type RemoveCallback func(cmd cmds.Command) error
 
 type Repository struct {
+	Name             string
+	FS               fs.FS
+	Directories      []string
+	RootDirectory    string
+	DocRootDirectory string
 	// The root of the repository.
 	Root           *TrieNode
-	Directories    []string
 	updateCallback UpdateCallback
 	removeCallback RemoveCallback
 
 	// fsLoader is used to load all commands on startup
 	fsLoader loaders.CommandLoader
-	// these options are passed to the loader to create new descriptions
-	cmdOptions []cmds.CommandDescriptionOption
 }
 
 type RepositoryOption func(*Repository)
 
-func WithDirectories(directories []string) RepositoryOption {
+func WithName(name string) RepositoryOption {
+	return func(r *Repository) {
+		r.Name = name
+	}
+}
+
+func WithFS(fs fs.FS) RepositoryOption {
+	return func(r *Repository) {
+		r.FS = fs
+	}
+}
+
+func WithRootDirectory(rootDirectory string) RepositoryOption {
+	return func(r *Repository) {
+		r.RootDirectory = rootDirectory
+	}
+}
+
+func WithDocRootDirectory(docRootDirectory string) RepositoryOption {
+	return func(r *Repository) {
+		r.DocRootDirectory = docRootDirectory
+	}
+}
+
+func WithDirectories(directories ...string) RepositoryOption {
 	return func(r *Repository) {
 		// convert all directories to absolute path
 		for i, directory := range directories {
@@ -47,23 +75,11 @@ func WithDirectories(directories []string) RepositoryOption {
 	}
 }
 
-// WithFSLoader sets the command loader to use when loading commands from
+// WithCommandLoader sets the command loader to use when loading commands from
 // the filesystem on startup or when a directory changes.
-func WithFSLoader(loader loaders.CommandLoader) RepositoryOption {
+func WithCommandLoader(loader loaders.CommandLoader) RepositoryOption {
 	return func(r *Repository) {
 		r.fsLoader = loader
-	}
-}
-
-func WithCommandDescriptionOptions(cmdOptions []cmds.CommandDescriptionOption) RepositoryOption {
-	return func(r *Repository) {
-		r.cmdOptions = cmdOptions
-	}
-}
-
-func WithDirectory(directory string) RepositoryOption {
-	return func(r *Repository) {
-		r.Directories = append(r.Directories, directory)
 	}
 }
 
@@ -79,16 +95,12 @@ func WithRemoveCallback(callback RemoveCallback) RepositoryOption {
 	}
 }
 
-func WithCommands(commands ...cmds.Command) RepositoryOption {
-	return func(r *Repository) {
-		r.Add(commands...)
-	}
-}
-
 // NewRepository creates a new repository.
 func NewRepository(options ...RepositoryOption) *Repository {
 	ret := &Repository{
-		Root: NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{}),
+		Root:             NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{}),
+		RootDirectory:    ".",
+		DocRootDirectory: "doc",
 	}
 	for _, opt := range options {
 		opt(ret)
@@ -98,20 +110,53 @@ func NewRepository(options ...RepositoryOption) *Repository {
 
 // LoadCommands initializes the repository by loading all commands from the loader,
 // if available.
-func (r *Repository) LoadCommands() error {
+func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.CommandDescriptionOption) error {
+	// TODO(manuel, 2024-01-18) Shouldn't the fsLoader be required?
 	if r.fsLoader != nil {
-		// TODO(manuel, 2023-05-26): Expose the repositories helpsystem
-		// We currently do not provide or use the helpsystem,
-		// but see:
-		// https://github.com/go-go-golems/glazed/issues/163
-		helpSystem := help.NewHelpSystem()
-		locations := claycmds.CommandLocations{
-			Repositories: r.Directories,
-		}
-		commandLoader := claycmds.NewCommandLoader[cmds.Command](&locations)
-		commands, aliases, err := commandLoader.LoadCommands(r.fsLoader, helpSystem)
-		if err != nil {
-			return err
+		commands := make([]cmds.Command, 0)
+		aliases := make([]*alias.CommandAlias, 0)
+
+		for _, directory := range r.Directories {
+			name := filepath.Base(directory)
+
+			options_ := append([]cmds.CommandDescriptionOption{
+				cmds.WithStripParentsPrefix([]string{r.RootDirectory}),
+			}, options...)
+
+			aliasOptions := []alias.Option{
+				alias.WithStripParentsPrefix([]string{r.RootDirectory}),
+			}
+
+			if r.Name != "" {
+				name = r.Name
+			}
+			options_ = append(options_, cmds.WithPrependSource(name+":"))
+			aliasOptions = append(aliasOptions, alias.WithPrependSource(name+":"))
+
+			commands_, err := loaders.LoadCommandsFromFS(r.FS, r.RootDirectory, r.fsLoader, options_, aliasOptions)
+			if err != nil {
+				return err
+			}
+			for _, command := range commands_ {
+				switch v := command.(type) {
+				// import to put alias first as the more specific one
+				case *alias.CommandAlias:
+					aliases = append(aliases, v)
+				case cmds.Command:
+					commands = append(commands, v)
+				default:
+					return errors.New(fmt.Sprintf("unknown command type %T", v))
+				}
+			}
+
+			err = helpSystem.LoadSectionsFromFS(r.FS, r.DocRootDirectory)
+			if err != nil {
+				// if err is PathError, it means that the directory does not exist
+				// and we can safely ignore it
+				if _, ok := err.(*fs.PathError); !ok {
+					return err
+				}
+			}
 		}
 		r.Add(commands...)
 		for _, alias_ := range aliases {

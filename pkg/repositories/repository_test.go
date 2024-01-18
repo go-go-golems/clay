@@ -1,4 +1,4 @@
-package fs
+package repositories
 
 import (
 	"github.com/go-go-golems/glazed/pkg/cmds"

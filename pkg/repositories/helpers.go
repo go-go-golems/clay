@@ -1,9 +1,10 @@
-package fs
+package repositories
 
 import (
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
+	"github.com/go-go-golems/glazed/pkg/help"
 	"os"
 )
 
@@ -27,11 +28,12 @@ func LoadCommandsFromInputs(
 	}
 
 	repository := NewRepository(
-		WithFSLoader(commandLoader),
-		WithDirectories(directories),
+		WithCommandLoader(commandLoader),
+		WithDirectories(directories...),
 	)
 
-	err := repository.LoadCommands()
+	helpSystem := help.NewHelpSystem()
+	err := repository.LoadCommands(helpSystem)
 	if err != nil {
 		return nil, err
 	}
