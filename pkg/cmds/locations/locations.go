@@ -4,12 +4,10 @@ import (
 	"fmt"
 	glazed_cmds "github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"io/fs"
 	"os"
 )
@@ -39,8 +37,6 @@ type CommandLocations struct {
 	Embedded []EmbeddedCommandLocation
 	// List of repositories directories
 	Repositories []string
-	// List of additional layers to add to every command
-	AdditionalLayers []layers.ParameterLayer
 	// Help system to register commands with
 	HelpSystem *help.HelpSystem
 	// Load embedded commands first
@@ -51,9 +47,8 @@ type LoadCommandsOption func(*CommandLocations)
 
 func NewCommandLocations(options ...LoadCommandsOption) *CommandLocations {
 	ret := &CommandLocations{
-		Embedded:         make([]EmbeddedCommandLocation, 0),
-		Repositories:     make([]string, 0),
-		AdditionalLayers: make([]layers.ParameterLayer, 0),
+		Embedded:     make([]EmbeddedCommandLocation, 0),
+		Repositories: make([]string, 0),
 	}
 
 	for _, o := range options {
@@ -61,12 +56,6 @@ func NewCommandLocations(options ...LoadCommandsOption) *CommandLocations {
 	}
 
 	return ret
-}
-
-func WithLoadEmbeddedFirst(loadEmbeddedFirst bool) LoadCommandsOption {
-	return func(c *CommandLocations) {
-		c.LoadEmbeddedFirst = loadEmbeddedFirst
-	}
 }
 
 func WithEmbeddedLocations(locations ...EmbeddedCommandLocation) LoadCommandsOption {
@@ -78,12 +67,6 @@ func WithEmbeddedLocations(locations ...EmbeddedCommandLocation) LoadCommandsOpt
 func WithRepositories(locations ...string) LoadCommandsOption {
 	return func(c *CommandLocations) {
 		c.Repositories = append(c.Repositories, locations...)
-	}
-}
-
-func WithAdditionalLayers(layers ...layers.ParameterLayer) LoadCommandsOption {
-	return func(c *CommandLocations) {
-		c.AdditionalLayers = append(c.AdditionalLayers, layers...)
 	}
 }
 
@@ -110,12 +93,6 @@ func (c *CommandLoader[T]) LoadCommands(
 	helpSystem *help.HelpSystem,
 	options ...glazed_cmds.CommandDescriptionOption,
 ) ([]T, []*alias.CommandAlias, error) {
-	// Load the variables from the environment
-
-	log.Debug().
-		Str("config", viper.ConfigFileUsed()).
-		Msg("Loaded configuration")
-
 	commands := make([]T, 0)
 	aliases := make([]*alias.CommandAlias, 0)
 
@@ -139,11 +116,6 @@ func (c *CommandLoader[T]) LoadCommands(
 		aliases = append(aliases, repositoryAliases...)
 		commands = append(commands, embeddedCommands...)
 		aliases = append(aliases, embeddedAliases...)
-	}
-
-	for _, command := range commands {
-		description := command.Description()
-		description.Layers.AppendLayers(c.locations.AdditionalLayers...)
 	}
 
 	return commands, aliases, nil
