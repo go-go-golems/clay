@@ -1,7 +1,7 @@
 package fs
 
 import (
-	claycmds "github.com/go-go-golems/clay/pkg/cmds"
+	claycmds "github.com/go-go-golems/clay/pkg/cmds/locations"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"

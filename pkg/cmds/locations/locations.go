@@ -1,4 +1,4 @@
-package cmds
+package locations
 
 import (
 	"fmt"
