@@ -3,7 +3,7 @@ package repo
 import (
 	"context"
 	cmds2 "github.com/go-go-golems/clay/pkg/cmds"
-	"github.com/go-go-golems/clay/pkg/repositories/fs"
+	"github.com/go-go-golems/clay/pkg/repositories"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
@@ -54,7 +54,7 @@ func (c *ListCommand) RunIntoGlazeProcessor(ctx context.Context, parsedLayers *l
 		return err
 	}
 
-	commands, err := fs.LoadCommandsFromInputs(cmds2.NewRawCommandLoader(), s.Inputs)
+	commands, err := repositories.LoadCommandsFromInputs(cmds2.NewRawCommandLoader(), s.Inputs)
 	if err != nil {
 		return err
 	}

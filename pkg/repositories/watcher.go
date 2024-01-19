@@ -1,4 +1,4 @@
-package fs
+package repositories
 
 import (
 	"context"
@@ -43,9 +43,9 @@ func (r *Repository) Watch(
 
 			// get directory of file
 			parents := loaders.GetParentsFromDir(filepath.Dir(path))
-			cmdOptions_ := append(r.cmdOptions,
+			cmdOptions_ := []cmds.CommandDescriptionOption{
 				cmds.WithSource(fullPath),
-				cmds.WithParents(parents...))
+				cmds.WithParents(parents...)}
 			aliasOptions := []alias.Option{
 				alias.WithSource(fullPath),
 				alias.WithParents(parents...),
