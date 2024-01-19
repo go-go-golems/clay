@@ -58,15 +58,10 @@ func NewListCommandsCommand(
 		return nil, err
 	}
 
-	options_ := append([]glazed_cmds.CommandDescriptionOption{
-		glazed_cmds.WithLayersList(glazeParameterLayer),
-	})
-
 	ret := &ListCommandsCommand{
 		commands: allCommands,
 		CommandDescription: glazed_cmds.NewCommandDescription(
-			"ls-commands",
-			options_...,
+			"ls-commands", glazed_cmds.WithLayersList(glazeParameterLayer),
 		),
 	}
 
