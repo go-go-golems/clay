@@ -16,7 +16,7 @@ func LoadCommandsFromInputs(
 	inputs []string,
 ) ([]cmds.Command, error) {
 	files := []string{}
-	directories := []string{}
+	directories := []Directory{}
 	for _, input := range inputs {
 		// check if is directory
 		s, err := os.Stat(input)
@@ -24,7 +24,13 @@ func LoadCommandsFromInputs(
 			return nil, err
 		}
 		if s.IsDir() {
-			directories = append(directories, input)
+			directories = append(directories, Directory{
+				FS:               os.DirFS(input),
+				RootDirectory:    ".",
+				RootDocDirectory: "doc",
+				Name:             input,
+				SourcePrefix:     "file",
+			})
 		} else {
 			files = append(files, input)
 		}
@@ -36,6 +42,7 @@ func LoadCommandsFromInputs(
 	)
 
 	helpSystem := help.NewHelpSystem()
+	// TODO(manuel, 2024-01-20) We actually need to load the files here as well to properly do the alias resolution
 	err := repository.LoadCommands(helpSystem)
 	if err != nil {
 		return nil, err
@@ -64,7 +71,7 @@ func LoadRepositories(
 	rootCmd *cobra.Command,
 	repositories_ []*Repository,
 	options ...cli.CobraParserOption,
-) []cmds.Command {
+) ([]cmds.Command, error) {
 
 	allCommands := []cmds.Command{}
 
@@ -72,7 +79,7 @@ func LoadRepositories(
 		err := repository.LoadCommands(helpSystem)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Error initializing commands: %s\n", err)
-			os.Exit(1)
+			return nil, err
 		}
 
 		aliases := []*alias.CommandAlias{}
@@ -96,9 +103,9 @@ func LoadRepositories(
 		)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Error initializing commands: %s\n", err)
-			os.Exit(1)
+			return nil, err
 		}
 
 	}
-	return allCommands
+	return allCommands, nil
 }
