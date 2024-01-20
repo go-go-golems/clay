@@ -10,6 +10,7 @@ import (
 	"github.com/go-go-golems/glazed/pkg/settings"
 	"github.com/go-go-golems/glazed/pkg/types"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type AddCommandToRowFunc func(cmd glazed_cmds.Command, row types.Row, parsedLayers *layers.ParsedLayers) ([]types.Row, error)
@@ -103,7 +104,7 @@ func (q *ListCommandsCommand) RunIntoGlazeProcessor(
 	for _, command := range q.commands {
 		description := command.Description()
 		obj := types.NewRow(
-			types.MRP("name", description.Name),
+			types.MRP("name", strings.Join(append(description.Parents, description.Name), " ")),
 			types.MRP("short", description.Short),
 			types.MRP("long", description.Long),
 			types.MRP("source", description.Source),
