@@ -19,19 +19,27 @@ import (
 type UpdateCallback func(cmd cmds.Command) error
 type RemoveCallback func(cmd cmds.Command) error
 
-type Repository struct {
-	Name             string
-	FS               fs.FS
-	Directories      []string
+type Directory struct {
+	FS fs.FS
+	// Root directories are relative to the FS
 	RootDirectory    string
-	DocRootDirectory string
+	RootDocDirectory string
+	// if set, points to the OS filepath in a normal os.DirFS
+	Directory    string
+	Name         string
+	SourcePrefix string
+}
+
+type Repository struct {
+	Name        string
+	Directories []Directory
 	// The root of the repository.
 	Root           *TrieNode
 	updateCallback UpdateCallback
 	removeCallback RemoveCallback
 
-	// fsLoader is used to load all commands on startup
-	fsLoader loaders.CommandLoader
+	// loader is used to load all commands on startup
+	loader loaders.CommandLoader
 }
 
 type RepositoryOption func(*Repository)
@@ -42,35 +50,8 @@ func WithName(name string) RepositoryOption {
 	}
 }
 
-func WithFS(fs fs.FS) RepositoryOption {
+func WithDirectories(directories ...Directory) RepositoryOption {
 	return func(r *Repository) {
-		r.FS = fs
-	}
-}
-
-func WithRootDirectory(rootDirectory string) RepositoryOption {
-	return func(r *Repository) {
-		r.RootDirectory = rootDirectory
-	}
-}
-
-func WithDocRootDirectory(docRootDirectory string) RepositoryOption {
-	return func(r *Repository) {
-		r.DocRootDirectory = docRootDirectory
-	}
-}
-
-func WithDirectories(directories ...string) RepositoryOption {
-	return func(r *Repository) {
-		// convert all directories to absolute path
-		for i, directory := range directories {
-			absPath, err := filepath.Abs(directory)
-			if err != nil {
-				log.Warn().Err(err).Msgf("could not convert %s to absolute path", directory)
-				continue
-			}
-			directories[i] = absPath
-		}
 		r.Directories = directories
 	}
 }
@@ -79,7 +60,7 @@ func WithDirectories(directories ...string) RepositoryOption {
 // the filesystem on startup or when a directory changes.
 func WithCommandLoader(loader loaders.CommandLoader) RepositoryOption {
 	return func(r *Repository) {
-		r.fsLoader = loader
+		r.loader = loader
 	}
 }
 
@@ -98,9 +79,7 @@ func WithRemoveCallback(callback RemoveCallback) RepositoryOption {
 // NewRepository creates a new repository.
 func NewRepository(options ...RepositoryOption) *Repository {
 	ret := &Repository{
-		Root:             NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{}),
-		RootDirectory:    ".",
-		DocRootDirectory: "doc",
+		Root: NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{}),
 	}
 	for _, opt := range options {
 		opt(ret)
@@ -111,29 +90,37 @@ func NewRepository(options ...RepositoryOption) *Repository {
 // LoadCommands initializes the repository by loading all commands from the loader,
 // if available.
 func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.CommandDescriptionOption) error {
-	// TODO(manuel, 2024-01-18) Shouldn't the fsLoader be required?
-	if r.fsLoader != nil {
+	// TODO(manuel, 2024-01-18) Shouldn't the loader be required?
+	if r.loader != nil {
 		commands := make([]cmds.Command, 0)
 		aliases := make([]*alias.CommandAlias, 0)
 
 		for _, directory := range r.Directories {
-			name := filepath.Base(directory)
-
-			options_ := append([]cmds.CommandDescriptionOption{
-				cmds.WithStripParentsPrefix([]string{r.RootDirectory}),
-			}, options...)
-
-			aliasOptions := []alias.Option{
-				alias.WithStripParentsPrefix([]string{r.RootDirectory}),
-			}
-
+			name := filepath.Base(directory.RootDirectory)
 			if r.Name != "" {
 				name = r.Name
 			}
-			options_ = append(options_, cmds.WithPrependSource(name+":"))
-			aliasOptions = append(aliasOptions, alias.WithPrependSource(name+":"))
+			if directory.Name != "" {
+				name = directory.Name
+			}
+			if directory.SourcePrefix != "" {
+				name = directory.SourcePrefix + ":" + name
+			}
 
-			commands_, err := loaders.LoadCommandsFromFS(r.FS, r.RootDirectory, r.fsLoader, options_, aliasOptions)
+			options_ := append([]cmds.CommandDescriptionOption{
+				cmds.WithStripParentsPrefix([]string{directory.RootDirectory}),
+			}, options...)
+
+			aliasOptions := []alias.Option{
+				alias.WithStripParentsPrefix([]string{directory.RootDirectory}),
+			}
+
+			commands_, err := loaders.LoadCommandsFromFS(
+				directory.FS,
+				directory.RootDirectory,
+				name,
+				r.loader,
+				options_, aliasOptions)
 			if err != nil {
 				return err
 			}
@@ -149,7 +136,7 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 				}
 			}
 
-			err = helpSystem.LoadSectionsFromFS(r.FS, r.DocRootDirectory)
+			err = helpSystem.LoadSectionsFromFS(directory.FS, directory.RootDocDirectory)
 			if err != nil {
 				// if err is PathError, it means that the directory does not exist
 				// and we can safely ignore it
@@ -192,7 +179,7 @@ func (r *Repository) Add(commands ...cmds.Command) {
 		aliasedCommand, ok := r.Root.FindCommand(prefix)
 		if !ok {
 			name := alias_.Name
-			log.Warn().Msgf("alias_ %s (prefix: %v) for %s not found", name, prefix, alias_.AliasFor)
+			log.Warn().Msgf("alias %s (prefix: %v, source %s) for %s not found", name, prefix, alias_.Source, alias_.AliasFor)
 			continue
 		}
 		alias_.AliasedCommand = aliasedCommand

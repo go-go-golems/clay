@@ -17,8 +17,17 @@ func (r *Repository) Watch(
 	ctx context.Context,
 	options ...watcher.Option,
 ) error {
-	if r.fsLoader == nil {
+	if r.loader == nil {
 		return fmt.Errorf("no command loader set")
+	}
+
+	paths := []string{}
+	for _, dir := range r.Directories {
+		// if the absolute directory is not set, skip
+		if dir.Directory == "" {
+			continue
+		}
+		paths = append(paths, dir.Directory)
 	}
 
 	options = append(options,
@@ -34,8 +43,8 @@ func (r *Repository) Watch(
 			// try to strip all r.Directories from path
 			// if it's not possible, then just use path
 			for _, dir := range r.Directories {
-				if strings.HasPrefix(path, dir) {
-					path = strings.TrimPrefix(path, dir)
+				if strings.HasPrefix(path, dir.RootDirectory) {
+					path = strings.TrimPrefix(path, dir.RootDirectory)
 					break
 				}
 			}
@@ -56,7 +65,7 @@ func (r *Repository) Watch(
 				return errors.Wrapf(err, "could not get fs and file path for %s", filePath)
 			}
 
-			commands, err := r.fsLoader.LoadCommands(fs_, filePath, cmdOptions_, aliasOptions)
+			commands, err := r.loader.LoadCommands(fs_, filePath, cmdOptions_, aliasOptions)
 			if err != nil {
 				return err
 			}
@@ -68,13 +77,13 @@ func (r *Repository) Watch(
 			r.Remove([]string{path})
 			return nil
 		}),
-		watcher.WithPaths(r.Directories...),
+		watcher.WithPaths(paths...),
 	)
 	w := watcher.NewWatcher(options...)
 
 	err := w.Run(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "could not run watcher for repository: %s", strings.Join(r.Directories, ","))
+		return errors.Wrapf(err, "could not run watcher for repository: %s", strings.Join(paths, ","))
 	}
 	return nil
 }
