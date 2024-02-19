@@ -13,19 +13,24 @@ import (
 	"time"
 )
 
-// TODO(manuel, 2023-04-23) These should be moved to the templating helpers in  glazed
+// sqlEscape escapes single quotes in a string for SQL queries.
+// It doubles any single quote characters to prevent SQL injection.
 func sqlEscape(value string) string {
 	return strings.Replace(value, "'", "''", -1)
 }
 
+// sqlString wraps a string value in single quotes for SQL queries.
 func sqlString(value string) string {
 	return fmt.Sprintf("'%s'", value)
 }
 
+// sqlStringLike formats a string for use in SQL LIKE queries, wrapping the value with '%' and escaping it.
 func sqlStringLike(value string) string {
 	return fmt.Sprintf("'%%%s%%'", sqlEscape(value))
 }
 
+// sqlStringIn converts a slice of values into a SQL IN clause string, properly escaping and quoting each value.
+// Returns an error if the input cannot be cast to a slice of strings.
 func sqlStringIn(values interface{}) (string, error) {
 	strList, ok := cast.CastList2[string, interface{}](values)
 	if !ok {
@@ -34,6 +39,8 @@ func sqlStringIn(values interface{}) (string, error) {
 	return fmt.Sprintf("'%s'", strings.Join(strList, "','")), nil
 }
 
+// sqlIn converts a slice of interface{} values into a comma-separated string for SQL queries.
+// Each value is formatted using fmt.Sprintf with the %v verb.
 func sqlIn(values []interface{}) string {
 	strValues := make([]string, len(values))
 	for i, v := range values {
@@ -42,6 +49,8 @@ func sqlIn(values []interface{}) string {
 	return strings.Join(strValues, ",")
 }
 
+// sqlIntIn converts a slice of integer values into a comma-separated string for SQL queries.
+// Returns an empty string if the input cannot be cast to a slice of int64.
 func sqlIntIn(values interface{}) string {
 	v_, ok := cast.CastInterfaceToIntList[int64](values)
 	if !ok {
@@ -54,6 +63,9 @@ func sqlIntIn(values interface{}) string {
 	return strings.Join(strValues, ",")
 }
 
+// sqlDate_ formats a date value for SQL queries, using different formats based on the date's timezone.
+// Returns an error if the date cannot be parsed or formatted.
+// This is a helper function used by other date formatting functions.
 func sqlDate_(date interface{}, fullFormat string, defaultFormat string) (string, error) {
 	switch v := date.(type) {
 	case string:
@@ -76,22 +88,31 @@ func sqlDate_(date interface{}, fullFormat string, defaultFormat string) (string
 	}
 }
 
+// sqlDate formats a date value for SQL queries as YYYY-MM-DD or RFC3339, based on the date's timezone.
+// Returns an error if the date cannot be parsed or formatted.
 func sqlDate(date interface{}) (string, error) {
 	return sqlDate_(date, time.RFC3339, "2006-01-02")
 }
 
+// sqlDateTime formats a datetime value for SQL queries as YYYY-MM-DDTHH:MM:SS or RFC3339, based on the datetime's timezone.
+// Returns an error if the datetime cannot be parsed or formatted.
 func sqlDateTime(date interface{}) (string, error) {
 	return sqlDate_(date, time.RFC3339, "2006-01-02T15:04:05")
 }
 
+// sqliteDate formats a date value specifically for SQLite queries as YYYY-MM-DD.
+// Returns an error if the date cannot be parsed or formatted.
 func sqliteDate(date interface{}) (string, error) {
 	return sqlDate_(date, "2006-01-02", "2006-01-02")
 }
 
+// sqliteDateTime formats a datetime value specifically for SQLite queries as YYYY-MM-DD HH:MM:SS.
+// Returns an error if the datetime cannot be parsed or formatted.
 func sqliteDateTime(date interface{}) (string, error) {
 	return sqlDate_(date, "2006-01-02 15:04:05", "2006-01-02 15:04:05")
 }
 
+// sqlLike formats a string for use in SQL LIKE queries by wrapping the value with '%'.
 func sqlLike(value string) string {
 	return "'%" + value + "%'"
 }
