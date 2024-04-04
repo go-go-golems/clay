@@ -215,3 +215,22 @@ func (r *Repository) CollectCommands(prefix []string, recurse bool) []cmds.Comma
 func (r *Repository) FindNode(prefix []string) *TrieNode {
 	return r.Root.FindNode(prefix)
 }
+
+func (r *Repository) GetRenderNode(prefix []string) (*RenderNode, bool) {
+	node := r.Root.FindNode(prefix)
+	if node == nil {
+		return nil, false
+	}
+
+	ret := node.ToRenderNode()
+	if len(prefix) > 0 {
+		ret.Name = prefix[len(prefix)-1]
+	}
+	cmd, ok := r.Root.FindCommand(prefix)
+	if ok {
+		ret.Command = cmd
+		ret.Name = cmd.Description().Name
+	}
+
+	return ret, true
+}
