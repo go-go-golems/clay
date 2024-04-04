@@ -91,6 +91,10 @@ func (t *TrieNode) findNode(prefix []string, createNewNodes bool) *TrieNode {
 	return node
 }
 
+func (t *TrieNode) FindNode(prefix []string) *TrieNode {
+	return t.findNode(prefix, false)
+}
+
 func (t *TrieNode) FindCommand(path []string) (cmds.Command, bool) {
 	if len(path) == 0 {
 		return nil, false

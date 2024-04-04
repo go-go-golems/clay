@@ -211,3 +211,7 @@ func (r *Repository) Remove(prefixes ...[]string) {
 func (r *Repository) CollectCommands(prefix []string, recurse bool) []cmds.Command {
 	return r.Root.CollectCommands(prefix, recurse)
 }
+
+func (r *Repository) FindNode(prefix []string) *TrieNode {
+	return r.Root.FindNode(prefix)
+}
