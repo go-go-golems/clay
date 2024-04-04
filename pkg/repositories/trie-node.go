@@ -4,11 +4,18 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/rs/zerolog/log"
+	"sort"
 )
 
 type TrieNode struct {
 	Children map[string]*TrieNode
 	Commands []cmds.Command
+}
+
+type RenderNode struct {
+	Name     string
+	Command  cmds.Command
+	Children []*RenderNode
 }
 
 // NewTrieNode creates a new trie node.
@@ -91,6 +98,10 @@ func (t *TrieNode) findNode(prefix []string, createNewNodes bool) *TrieNode {
 	return node
 }
 
+func (t *TrieNode) FindNode(prefix []string) *TrieNode {
+	return t.findNode(prefix, false)
+}
+
 func (t *TrieNode) FindCommand(path []string) (cmds.Command, bool) {
 	if len(path) == 0 {
 		return nil, false
@@ -152,6 +163,48 @@ func (t *TrieNode) CollectCommands(prefix []string, recurse bool) []cmds.Command
 
 	// add commands and aliases from current node
 	ret = append(ret, node.Commands...)
+
+	return ret
+}
+
+func (r *TrieNode) ToRenderNode() *RenderNode {
+	ret := &RenderNode{
+		Name:     "",
+		Command:  nil,
+		Children: nil,
+	}
+	childrenMap := make(map[string]*RenderNode)
+
+	for _, c := range r.Commands {
+		childrenMap[c.Description().Name] = &RenderNode{
+			Name:     c.Description().Name,
+			Command:  c,
+			Children: nil,
+		}
+	}
+
+	for k, v := range r.Children {
+		existingNode, ok := childrenMap[k]
+		newNode := v.ToRenderNode()
+		newNode.Name = k
+		if ok {
+			// merge command
+			newNode.Command = existingNode.Command
+			childrenMap[k] = newNode
+		} else {
+			childrenMap[k] = newNode
+		}
+	}
+
+	ret.Children = make([]*RenderNode, 0, len(childrenMap))
+	for _, v := range childrenMap {
+		ret.Children = append(ret.Children, v)
+	}
+
+	// sort by name
+	sort.Slice(ret.Children, func(i, j int) bool {
+		return ret.Children[i].Name < ret.Children[j].Name
+	})
 
 	return ret
 }
