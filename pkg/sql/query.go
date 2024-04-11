@@ -90,29 +90,11 @@ func RunQuery(
 	ctx context.Context,
 	subQueries map[string]string,
 	query string,
-	args []interface{},
-	ps map[string]interface{},
+	ps2 map[string]interface{},
 	db *sqlx.DB,
 ) (string, *sqlx.Rows, error) {
 	if db == nil {
 		return "", nil, errors.New("No database connection")
-	}
-
-	ps2 := map[string]interface{}{}
-
-	for k, v := range ps {
-		ps2[k] = v
-	}
-	// args is k, v, k, v, k, v
-	if len(args)%2 != 0 {
-		return "", nil, errors.Errorf("Could not run query: %s", query)
-	}
-	for i := 0; i < len(args); i += 2 {
-		k, ok := args[i].(string)
-		if !ok {
-			return "", nil, errors.Errorf("Could not run query: %s", query)
-		}
-		ps2[k] = args[i+1]
 	}
 
 	t2 := CreateTemplate(ctx, subQueries, ps2, db)
@@ -139,6 +121,26 @@ func RunQuery(
 	return query_, rows, err
 }
 
+func mergeQueryData(data map[string]interface{}, args []interface{}) (map[string]interface{}, error) {
+	ps2 := map[string]interface{}{}
+
+	for k, v := range data {
+		ps2[k] = v
+	}
+	// args is k, v, k, v, k, v
+	if len(args)%2 != 0 {
+		return nil, errors.Errorf("Expected even number of arguments")
+	}
+	for i := 0; i < len(args); i += 2 {
+		k, ok := args[i].(string)
+		if !ok {
+			return nil, errors.Errorf("Could not convert arg to string")
+		}
+		ps2[k] = args[i+1]
+	}
+	return ps2, nil
+}
+
 // TODO(manuel, 2023-11-19) Actually return bound arguments,
 // probably by adding a funcmap function that one can pipe variable into (but how do we get the name?
 // Maybe this is possible in jinja? Other option is to replace the parameters we push into the template and wrap them)
@@ -150,16 +152,16 @@ func RenderQuery(
 	db *sqlx.DB,
 	query string,
 	subQueries map[string]string,
-	ps map[string]interface{},
+	data map[string]interface{},
 ) (string, error) {
-	t2 := CreateTemplate(ctx, subQueries, ps, db)
+	t2 := CreateTemplate(ctx, subQueries, data, db)
 
 	t, err := t2.Parse(query)
 	if err != nil {
 		return "", errors.Wrap(err, "Could not parse query template")
 	}
 
-	ret, err := templating.RenderTemplate(t, ps)
+	ret, err := templating.RenderTemplate(t, data)
 	if err != nil {
 		return "", errors.Wrap(err, "Could not render query template")
 	}

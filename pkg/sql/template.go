@@ -148,7 +148,11 @@ func CreateTemplate(
 				return s, nil
 			},
 			"sqlSlice": func(query string, args ...interface{}) ([]interface{}, error) {
-				_, rows, err := RunQuery(ctx, subQueries, query, args, ps, db)
+				data, err := mergeQueryData(ps, args)
+				if err != nil {
+					return nil, err
+				}
+				_, rows, err := RunQuery(ctx, subQueries, query, data, db)
 				if err != nil {
 					// TODO(manuel, 2023-03-27) This nesting of errors in nested templates becomes quite unpalatable
 					// This is what can be output for just one level deep:
@@ -186,7 +190,11 @@ func CreateTemplate(
 				return ret, nil
 			},
 			"sqlColumn": func(query string, args ...interface{}) ([]interface{}, error) {
-				renderedQuery, rows, err := RunQuery(ctx, subQueries, query, args, ps, db)
+				data, err := mergeQueryData(ps, args)
+				if err != nil {
+					return nil, err
+				}
+				renderedQuery, rows, err := RunQuery(ctx, subQueries, query, data, db)
 				if err != nil {
 					return nil, errors.Wrapf(err, "Could not run query: %s", renderedQuery)
 				}
@@ -214,7 +222,11 @@ func CreateTemplate(
 				return ret, nil
 			},
 			"sqlSingle": func(query string, args ...interface{}) (interface{}, error) {
-				renderedQuery, rows, err := RunQuery(ctx, subQueries, query, args, ps, db)
+				data, err := mergeQueryData(ps, args)
+				if err != nil {
+					return nil, err
+				}
+				renderedQuery, rows, err := RunQuery(ctx, subQueries, query, data, db)
 				if err != nil {
 					return nil, errors.Wrapf(err, "Could not run query: %s", renderedQuery)
 				}
@@ -251,7 +263,11 @@ func CreateTemplate(
 				return sqlEltToTemplateValue(ret[0]), nil
 			},
 			"sqlMap": func(query string, args ...interface{}) (interface{}, error) {
-				renderedQuery, rows, err := RunQuery(ctx, subQueries, query, args, ps, db)
+				data, err := mergeQueryData(ps, args)
+				if err != nil {
+					return nil, err
+				}
+				renderedQuery, rows, err := RunQuery(ctx, subQueries, query, data, db)
 				if err != nil {
 					return nil, errors.Wrapf(err, "Could not run query: %s", renderedQuery)
 				}
