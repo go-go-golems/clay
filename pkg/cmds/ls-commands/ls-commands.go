@@ -5,6 +5,7 @@ import (
 	glazed_cmds "github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
+	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
 	"github.com/go-go-golems/glazed/pkg/middlewares"
 	"github.com/go-go-golems/glazed/pkg/middlewares/row"
 	"github.com/go-go-golems/glazed/pkg/settings"
@@ -62,7 +63,15 @@ func NewListCommandsCommand(
 	ret := &ListCommandsCommand{
 		commands: allCommands,
 		CommandDescription: glazed_cmds.NewCommandDescription(
-			"ls-commands", glazed_cmds.WithLayersList(glazeParameterLayer),
+			"ls-commands",
+			glazed_cmds.WithFlags(
+				parameters.NewParameterDefinition(
+					"source-like",
+					parameters.ParameterTypeStringList,
+					parameters.WithHelp("Filter commands by fuzzy match on source, joined by OR"),
+				),
+			),
+			glazed_cmds.WithLayersList(glazeParameterLayer),
 		),
 	}
 
@@ -76,11 +85,20 @@ func NewListCommandsCommand(
 	return ret, nil
 }
 
+type ListCommandsSettings struct {
+	SourceLike []string `glazed.parameter:"source-like"`
+}
+
 func (q *ListCommandsCommand) RunIntoGlazeProcessor(
 	ctx context.Context,
 	parsedLayers *layers.ParsedLayers,
 	gp middlewares.Processor,
 ) error {
+	s := &ListCommandsSettings{}
+	if err := parsedLayers.InitializeStruct(layers.DefaultSlug, s); err != nil {
+		return err
+	}
+
 	tableProcessor, ok := gp.(*middlewares.TableProcessor)
 	if !ok {
 		return errors.New("expected a table processor")
@@ -111,6 +129,19 @@ func (q *ListCommandsCommand) RunIntoGlazeProcessor(
 			types.MRP("type", "unknown"),
 			types.MRP("parents", description.Parents),
 		)
+
+		if len(s.SourceLike) > 0 {
+			found := false
+			for _, sourceLike := range s.SourceLike {
+				if strings.Contains(description.Source, sourceLike) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
 
 		switch c := command.(type) {
 		case *alias.CommandAlias:
