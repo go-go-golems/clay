@@ -29,6 +29,7 @@ func LoadCommandsFromInputs(
 				RootDirectory:    ".",
 				RootDocDirectory: "doc",
 				Name:             input,
+				WatchDirectory:   input,
 				SourcePrefix:     "file",
 			})
 		} else {

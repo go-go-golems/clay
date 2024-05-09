@@ -23,11 +23,10 @@ func (r *Repository) Watch(
 
 	paths := []string{}
 	for _, dir := range r.Directories {
-		// if the absolute directory is not set, skip
-		if dir.Directory == "" {
-			continue
+		// if the watch directory is not set, skip
+		if dir.WatchDirectory != "" {
+			paths = append(paths, dir.WatchDirectory)
 		}
-		paths = append(paths, dir.Directory)
 	}
 
 	options = append(options,

@@ -24,10 +24,9 @@ type Directory struct {
 	// Root directories are relative to the FS
 	RootDirectory    string
 	RootDocDirectory string
-	// if set, points to the OS filepath in a normal os.DirFS
-	Directory    string
-	Name         string
-	SourcePrefix string
+	Name             string
+	SourcePrefix     string
+	WatchDirectory   string
 }
 
 type Repository struct {
