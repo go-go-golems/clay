@@ -1,4 +1,4 @@
-package ls_commands
+package edit_command
 
 import (
 	"context"
@@ -18,12 +18,23 @@ type EditCommand struct {
 	*glazed_cmds.CommandDescription
 	commands []glazed_cmds.Command
 }
+type EditCommandOption func(*EditCommand) error
 
-func NewEditCommand(allCommands []glazed_cmds.Command) (*EditCommand, error) {
-	return &EditCommand{
+func WithCommandDescriptionOptions(options ...glazed_cmds.CommandDescriptionOption) EditCommandOption {
+	return func(q *EditCommand) error {
+		description := q.CommandDescription.Description()
+		for _, option := range options {
+			option(description)
+		}
+		return nil
+	}
+}
+
+func NewEditCommand(allCommands []glazed_cmds.Command, options ...EditCommandOption) (*EditCommand, error) {
+	ret := &EditCommand{
 		commands: allCommands,
 		CommandDescription: glazed_cmds.NewCommandDescription(
-			"edit",
+			"edit-command",
 			glazed_cmds.WithShort("Edit a command"),
 			glazed_cmds.WithArguments(
 				parameters.NewParameterDefinition(
@@ -33,7 +44,15 @@ func NewEditCommand(allCommands []glazed_cmds.Command) (*EditCommand, error) {
 				),
 			),
 		),
-	}, nil
+	}
+
+	for _, option := range options {
+		if err := option(ret); err != nil {
+			return nil, errors.Wrap(err, "failed to apply option")
+		}
+	}
+
+	return ret, nil
 }
 
 type EditCommandsSettings struct {
@@ -49,7 +68,7 @@ func (c *EditCommand) Run(ctx context.Context, parsedLayers *layers.ParsedLayers
 
 	var matchedCommand glazed_cmds.Command
 	for _, cmd := range c.commands {
-		if cmd.Description().Name == s.Command {
+		if cmd.Description().FullPath() == s.Command {
 			matchedCommand = cmd
 			break
 		}
