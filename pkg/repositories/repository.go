@@ -95,15 +95,19 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 		aliases := make([]*alias.CommandAlias, 0)
 
 		for _, directory := range r.Directories {
-			name := filepath.Base(directory.RootDirectory)
+			source := ""
+			if directory.SourcePrefix != "" {
+				source = directory.SourcePrefix + ":"
+			}
 			if r.Name != "" {
-				name = r.Name
+				source = source + r.Name + ":"
 			}
 			if directory.Name != "" {
-				name = directory.Name
+				source = source + directory.Name
 			}
-			if directory.SourcePrefix != "" {
-				name = directory.SourcePrefix + ":" + name
+			base := filepath.Base(directory.RootDirectory)
+			if base != "." {
+				source = source + "/" + base
 			}
 
 			options_ := append([]cmds.CommandDescriptionOption{
@@ -117,7 +121,7 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 			commands_, err := loaders.LoadCommandsFromFS(
 				directory.FS,
 				directory.RootDirectory,
-				name,
+				source,
 				r.loader,
 				options_, aliasOptions)
 			if err != nil {
