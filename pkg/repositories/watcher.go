@@ -42,8 +42,8 @@ func (r *Repository) Watch(
 			// try to strip all r.Directories from path
 			// if it's not possible, then just use path
 			for _, dir := range r.Directories {
-				if strings.HasPrefix(path, dir.RootDirectory) {
-					path = strings.TrimPrefix(path, dir.RootDirectory)
+				if strings.HasPrefix(path, dir.WatchDirectory) && dir.WatchDirectory != "." {
+					path = strings.TrimPrefix(path, dir.WatchDirectory)
 					break
 				}
 			}
