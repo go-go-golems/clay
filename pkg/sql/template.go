@@ -34,7 +34,7 @@ func sqlStringLike(value string) string {
 func sqlStringIn(values interface{}) (string, error) {
 	strList, ok := cast.CastList2[string, interface{}](values)
 	if !ok {
-		return "", fmt.Errorf("could not cast %v to []string", values)
+		return "", errors.Errorf("could not cast %v to []string", values)
 	}
 	return fmt.Sprintf("'%s'", strings.Join(strList, "','")), nil
 }
@@ -84,7 +84,7 @@ func sqlDate_(date interface{}, fullFormat string, defaultFormat string) (string
 		}
 		return "'" + v.Format(fullFormat) + "'", nil
 	default:
-		return "", fmt.Errorf("could not parse date %v", date)
+		return "", errors.Errorf("could not parse date %v", date)
 	}
 }
 

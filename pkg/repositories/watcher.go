@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-go-golems/clay/pkg/watcher"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
@@ -18,7 +17,7 @@ func (r *Repository) Watch(
 	options ...watcher.Option,
 ) error {
 	if r.loader == nil {
-		return fmt.Errorf("no command loader set")
+		return errors.New("no command loader set")
 	}
 
 	paths := []string{}
