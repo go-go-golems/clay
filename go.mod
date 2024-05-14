@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bmatcuk/doublestar/v4 v4.6.0
 	github.com/fsnotify/fsnotify v1.6.0
-	github.com/go-go-golems/glazed v0.5.13
+	github.com/go-go-golems/glazed v0.5.14
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/jmoiron/sqlx v1.3.5
