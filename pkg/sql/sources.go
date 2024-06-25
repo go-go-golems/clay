@@ -9,20 +9,25 @@ import (
 // Source is the generic structure we use to represent
 // a database connection string
 type Source struct {
-	Name     string
-	Type     string `yaml:"type"`
-	Hostname string `yaml:"server"`
-	Port     int    `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Schema   string `yaml:"schema"`
-	Database string `yaml:"database"`
+	Name       string
+	Type       string `yaml:"type"`
+	Hostname   string `yaml:"server"`
+	Port       int    `yaml:"port"`
+	Username   string `yaml:"username"`
+	Password   string `yaml:"password"`
+	Schema     string `yaml:"schema"`
+	Database   string `yaml:"database"`
+	SSLDisable bool   `yaml:"ssl_disable"`
 }
 
 func (s *Source) ToConnectionString() string {
 	switch s.Type {
 	case "postgres":
-		return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", s.Hostname, s.Port, s.Username, s.Password, s.Database)
+		sslMode := "disable"
+		if !s.SSLDisable {
+			sslMode = "require"
+		}
+		return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", s.Hostname, s.Port, s.Username, s.Password, s.Database, sslMode)
 	case "mysql":
 		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", s.Username, s.Password, s.Hostname, s.Port, s.Database)
 	case "sqlite":
