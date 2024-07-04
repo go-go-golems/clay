@@ -80,26 +80,7 @@ func InitLogger() error {
 	})
 }
 
-func InitViper(appName string, rootCmd *cobra.Command) error {
-	rootCmd.PersistentFlags().Bool("with-caller", false, "Log caller")
-	rootCmd.PersistentFlags().String("log-level", "info", "Log level (debug, info, warn, error, fatal)")
-	rootCmd.PersistentFlags().String("log-format", "text", "Log format (json, text)")
-	rootCmd.PersistentFlags().String("log-file", "", "Log file (default: stderr)")
-
-	rootCmd.PersistentFlags().Bool("verbose", false, "Verbose output")
-
-	rootCmd.PersistentFlags().String("config", "",
-		fmt.Sprintf("Path to config file (default ~/.%s/config.yml)", appName))
-
-	// parse the flags one time just to catch --config
-	configFile := ""
-	for idx, arg := range os.Args {
-		if arg == "--config" {
-			if len(os.Args) > idx+1 {
-				configFile = os.Args[idx+1]
-			}
-		}
-	}
+func InitViperWithAppName(appName string, configFile string) error {
 	viper.SetEnvPrefix(appName)
 
 	if configFile != "" {
@@ -127,6 +108,32 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 	}
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
+
+	return nil
+}
+
+func InitViper(appName string, rootCmd *cobra.Command) error {
+	rootCmd.PersistentFlags().Bool("with-caller", false, "Log caller")
+	rootCmd.PersistentFlags().String("log-level", "info", "Log level (debug, info, warn, error, fatal)")
+	rootCmd.PersistentFlags().String("log-format", "text", "Log format (json, text)")
+	rootCmd.PersistentFlags().String("log-file", "", "Log file (default: stderr)")
+
+	rootCmd.PersistentFlags().Bool("verbose", false, "Verbose output")
+
+	rootCmd.PersistentFlags().String("config", "",
+		fmt.Sprintf("Path to config file (default ~/.%s/config.yml)", appName))
+
+	// parse the flags one time just to catch --config
+	configFile := ""
+	for idx, arg := range os.Args {
+		if arg == "--config" {
+			if len(os.Args) > idx+1 {
+				configFile = os.Args[idx+1]
+			}
+		}
+	}
+
+	err := InitViperWithAppName(appName, configFile)
 
 	// Bind the variables to the command-line flags
 	err = viper.BindPFlags(rootCmd.PersistentFlags())
