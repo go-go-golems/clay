@@ -47,7 +47,10 @@ func InitLoggerWithConfig(config *LogConfig) error {
 				Out:     fileLogger,
 			}
 		}
-		logWriter = io.MultiWriter(logWriter, writer)
+		// TODO(manuel, 2024-07-05) We used to support logging to file *and* stderr, but disabling that for now
+		// because it makes logging in UI apps tricky.
+		// logWriter = io.MultiWriter(logWriter, writer)
+		logWriter = writer
 	}
 
 	log.Logger = log.Output(logWriter)
