@@ -32,18 +32,22 @@ func InitLoggerWithConfig(config *LogConfig) error {
 	}
 
 	if config.LogFile != "" {
-		logWriter = io.MultiWriter(
-			logWriter,
-			zerolog.ConsoleWriter{
+		fileLogger := &lumberjack.Logger{
+			Filename:   config.LogFile,
+			MaxSize:    10, // megabytes
+			MaxBackups: 3,
+			MaxAge:     28,    //days
+			Compress:   false, // disabled by default
+		}
+		var writer io.Writer
+		writer = fileLogger
+		if config.LogFormat == "text" {
+			writer = zerolog.ConsoleWriter{
 				NoColor: true,
-				Out: &lumberjack.Logger{
-					Filename:   config.LogFile,
-					MaxSize:    10, // megabytes
-					MaxBackups: 3,
-					MaxAge:     28,    //days
-					Compress:   false, // disabled by default
-				},
-			})
+				Out:     fileLogger,
+			}
+		}
+		logWriter = io.MultiWriter(logWriter, writer)
 	}
 
 	log.Logger = log.Output(logWriter)
