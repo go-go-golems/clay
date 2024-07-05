@@ -141,6 +141,9 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 	}
 
 	err := InitViperWithAppName(appName, configFile)
+	if err != nil {
+		return err
+	}
 
 	// Bind the variables to the command-line flags
 	err = viper.BindPFlags(rootCmd.PersistentFlags())
