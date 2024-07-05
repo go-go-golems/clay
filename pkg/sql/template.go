@@ -32,8 +32,8 @@ func sqlStringLike(value string) string {
 // sqlStringIn converts a slice of values into a SQL IN clause string, properly escaping and quoting each value.
 // Returns an error if the input cannot be cast to a slice of strings.
 func sqlStringIn(values interface{}) (string, error) {
-	strList, ok := cast.CastList2[string, interface{}](values)
-	if !ok {
+	strList, err := cast.CastListToStringList(values)
+	if err != nil {
 		return "", errors.Errorf("could not cast %v to []string", values)
 	}
 	return fmt.Sprintf("'%s'", strings.Join(strList, "','")), nil

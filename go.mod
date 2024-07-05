@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bmatcuk/doublestar/v4 v4.6.0
 	github.com/fsnotify/fsnotify v1.6.0
-	github.com/go-go-golems/glazed v0.5.14
+	github.com/go-go-golems/glazed v0.5.17
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/jmoiron/sqlx v1.3.5
@@ -37,7 +37,6 @@ require (
 	github.com/charmbracelet/glamour v0.6.1-0.20230531150759-6d5b52861a9d // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.10.0 // indirect
-	github.com/frankban/quicktest v1.14.5 // indirect
 	github.com/go-openapi/errors v0.22.0 // indirect
 	github.com/go-openapi/strfmt v0.23.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
