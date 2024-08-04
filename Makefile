@@ -31,7 +31,7 @@ tag-patch:
 	git tag $(shell svu patch)
 
 goreleaser:
-	goreleaser release --skip-sign --snapshot --rm-dist
+	goreleaser release --skip=sign --snapshot --clean
 
 release:
 	git push --tags
