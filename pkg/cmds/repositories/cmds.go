@@ -1,12 +1,15 @@
 package repositories
 
 import (
+	"embed"
 	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
 )
 
 func NewRepositoriesGroupCommand() *cobra.Command {
@@ -274,4 +277,11 @@ func writeConfig(configFile string, root *yaml.Node) error {
 	}
 
 	return nil
+}
+
+//go:embed docs/*
+var docFS embed.FS
+
+func AddDocToHelpSystem(helpSystem *help.HelpSystem) error {
+	return helpSystem.LoadSectionsFromFS(docFS, ".")
 }
