@@ -209,6 +209,9 @@ func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node,
 			return nil, err
 		}
 		for _, entry := range entries {
+			if entry.Name() == "" {
+				continue
+			}
 			childPath := filepath.Join(path, entry.Name())
 			info, err := entry.Info()
 			if err != nil {
