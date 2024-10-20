@@ -12,6 +12,7 @@ The **AST Walker** is a Go package designed to traverse files and directories, p
 - **Pre and Post Visit Callbacks**: Execute custom functions before and after visiting each node.
 - **Cross-Tree Navigation**: Retrieve nodes by path or relative path during traversal.
 - **Configurable Options**: Customize behavior such as following symbolic links.
+- **Node Filtering**: Apply custom filters to include or exclude nodes based on their properties.
 - **Relative Path Resolution**: Automatically resolve relative paths to absolute paths.
 
 ## Installation
@@ -70,6 +71,27 @@ The Walker now automatically resolves relative paths to absolute paths:
 ```go
 absPath := walker.resolveRelativePath("relative/path")
 fmt.Println(absPath) // Prints the absolute path
+```
+
+### Filtering Nodes
+
+You can use the `WithFilter` option to specify a custom filter function that determines which nodes should be included in the walk:
+
+```go
+filter := func(node *filewalker.Node) bool {
+    return node.Type == filewalker.DirectoryNode || strings.HasSuffix(node.Path, ".go")
+}
+
+walker, err := filewalker.NewWalker(filewalker.WithFilter(filter))
+if err != nil {
+    log.Fatal(err)
+}
+
+// This walk will only include directories and .go files
+err = walker.Walk([]string{"."}, preVisitFunc, postVisitFunc)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ## API Reference

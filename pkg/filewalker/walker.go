@@ -63,7 +63,8 @@ type Walker struct {
 	nodeMap        map[string]*Node
 	fs             fs.FS
 	paths          []string
-	currentDir     string // Add this field to store the current directory
+	currentDir     string
+	filter         func(node *Node) bool
 }
 
 // NewWalker creates a new Walker with the provided options.
@@ -112,6 +113,13 @@ func WithFollowSymlinks(follow bool) WalkerOption {
 	}
 }
 
+// WithFilter sets a filter function for the Walker.
+func WithFilter(filter func(node *Node) bool) WalkerOption {
+	return func(w *Walker) {
+		w.filter = filter
+	}
+}
+
 // VisitFunc defines the function signature for pre- and post-visit callbacks.
 type VisitFunc func(w *Walker, node *Node) error
 
@@ -138,6 +146,9 @@ func (w *Walker) walkFS(rootPaths []string, preVisit VisitFunc, postVisit VisitF
 		node, err := w.buildFSNode(nil, "/", relPath)
 		if err != nil {
 			return err
+		}
+		if w.filter != nil && !w.filter(node) {
+			continue
 		}
 		if err := w.walkNode(node, preVisit, postVisit); err != nil {
 			return err
@@ -208,6 +219,10 @@ func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node,
 		Parent: parent,
 	}
 
+	if w.filter != nil && !w.filter(node) {
+		return nil, nil
+	}
+
 	w.nodeMap[absPath] = node
 
 	if fileInfo.IsDir() {
@@ -231,7 +246,9 @@ func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node,
 			if err != nil {
 				return nil, err
 			}
-			node.Children = append(node.Children, childNode)
+			if childNode != nil {
+				node.Children = append(node.Children, childNode)
+			}
 		}
 	}
 	return node, nil
