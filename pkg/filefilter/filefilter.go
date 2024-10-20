@@ -395,12 +395,30 @@ func (ff *FileFilter) SaveToFile(filename string) error {
 }
 
 // LoadFromFile loads a FileFilter configuration from a YAML file
-func LoadFromFile(filename string) (*FileFilter, error) {
+// If a profile is specified, it returns the FileFilter for that profile
+func LoadFromFile(filename string, profile string) (*FileFilter, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	return FromYAML(data)
+
+	ff, err := FromYAML(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if profile != "" {
+		if profileFF, exists := ff.Profiles[profile]; exists {
+			// Ensure the profile FileFilter inherits the default values
+			profileFF.DefaultExcludedExts = ff.DefaultExcludedExts
+			profileFF.DefaultExcludedDirs = ff.DefaultExcludedDirs
+			profileFF.DefaultExcludedMatchFilenames = ff.DefaultExcludedMatchFilenames
+			return profileFF, nil
+		}
+		return nil, fmt.Errorf("specified profile '%s' not found in configuration", profile)
+	}
+
+	return ff, nil
 }
 
 func compileRegexps(patterns []string) []*regexp.Regexp {
