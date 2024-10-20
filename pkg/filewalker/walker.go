@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"testing/fstest"
 )
 
 // NodeType represents the type of the node: file or directory.
@@ -64,6 +63,7 @@ type Walker struct {
 	nodeMap        map[string]*Node
 	fs             fs.FS
 	paths          []string
+	currentDir     string // Add this field to store the current directory
 }
 
 // NewWalker creates a new Walker with the provided options.
@@ -79,12 +79,13 @@ func NewWalker(opts ...WalkerOption) (*Walker, error) {
 		return nil, fmt.Errorf("either fs.FS must be set or paths must not be empty")
 	}
 
-	if w.fs == nil && len(w.paths) > 0 {
-		mapFS := fstest.MapFS{}
-		for _, path := range w.paths {
-			mapFS[path] = &fstest.MapFile{}
+	if w.fs == nil {
+		w.fs = os.DirFS("/")
+		var err error
+		w.currentDir, err = os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get current working directory: %w", err)
 		}
-		w.fs = mapFS
 	}
 
 	return w, nil
@@ -129,7 +130,12 @@ func (w *Walker) Walk(paths []string, preVisit VisitFunc, postVisit VisitFunc) e
 
 func (w *Walker) walkFS(rootPaths []string, preVisit VisitFunc, postVisit VisitFunc) error {
 	for _, rootPath := range rootPaths {
-		node, err := w.buildFSNode(nil, ".", rootPath)
+		absPath := w.resolveRelativePath(rootPath)
+		relPath, err := filepath.Rel("/", absPath)
+		if err != nil {
+			return fmt.Errorf("failed to get relative path: %w", err)
+		}
+		node, err := w.buildFSNode(nil, "/", relPath)
 		if err != nil {
 			return err
 		}
@@ -190,6 +196,7 @@ func (w *Walker) addVirtualNode(root *Node, path string) error {
 }
 
 func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node, error) {
+	absPath := filepath.Join("/", path)
 	fileInfo, err := fs.Stat(w.fs, path)
 	if err != nil {
 		return nil, err
@@ -197,11 +204,11 @@ func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node,
 
 	node := &Node{
 		Type:   determineNodeType(fileInfo.IsDir()),
-		Path:   path,
+		Path:   absPath,
 		Parent: parent,
 	}
 
-	w.nodeMap[path] = node
+	w.nodeMap[absPath] = node
 
 	if fileInfo.IsDir() {
 		entries, err := fs.ReadDir(w.fs, path)
@@ -275,4 +282,11 @@ func (w *Walker) GetNodeByPath(path string) (*Node, error) {
 func (w *Walker) GetNodeByRelativePath(baseNode *Node, relativePath string) (*Node, error) {
 	fullPath := filepath.Join(baseNode.Path, relativePath)
 	return w.GetNodeByPath(fullPath)
+}
+
+func (w *Walker) resolveRelativePath(path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Join(w.currentDir, path)
 }

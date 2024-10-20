@@ -4,12 +4,6 @@
 
 The **AST Walker** is a Go package designed to traverse files and directories, providing a flexible and efficient way to perform operations over a set of files and directories. It constructs an Abstract Syntax Tree (AST)-like structure of the filesystem, allowing you to perform pre- and post-visit operations on each node (file or directory).
 
-This package is particularly useful when you need to:
-
-- Process files and directories recursively.
-- Apply filters or transformations to a set of files.
-- Navigate and manipulate the filesystem tree programmatically.
-
 ## Features
 
 - **Flexible Traversal**: Start traversal from directories or a list of specific filenames.
@@ -18,6 +12,7 @@ This package is particularly useful when you need to:
 - **Pre and Post Visit Callbacks**: Execute custom functions before and after visiting each node.
 - **Cross-Tree Navigation**: Retrieve nodes by path or relative path during traversal.
 - **Configurable Options**: Customize behavior such as following symbolic links.
+- **Relative Path Resolution**: Automatically resolve relative paths to absolute paths.
 
 ## Installation
 
@@ -41,109 +36,60 @@ import (
 
 ### Creating a Walker
 
-Instantiate a new walker with the desired options:
-
 ```go
 // For standard file system
-standardFS := os.DirFS("/path/to/root")
-walker := filewalker.NewWalker(
-    filewalker.WithFS(standardFS),
-    filewalker.WithFollowSymlinks(false), // Don't follow symbolic links
-)
+walker, err := filewalker.NewWalker()
+if err != nil {
+    log.Fatal(err)
+}
 
-// For virtual file tree
-virtualWalker := filewalker.NewWalker()
+// For custom file system
+customFS := myCustomFS{}
+walker, err := filewalker.NewWalker(filewalker.WithFS(customFS))
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
-### Defining Visit Functions
-
-Define functions to execute before and after visiting each node:
+### Walking the File System
 
 ```go
-preVisit := func(w *filewalker.Walker, node *filewalker.Node) error {
+err := walker.Walk([]string{"path/to/walk"}, func(w *filewalker.Walker, node *filewalker.Node) error {
     fmt.Printf("Visiting: %s\n", node.Path)
-    // Custom logic here
     return nil
-}
-
-postVisit := func(w *filewalker.Walker, node *filewalker.Node) error {
-    fmt.Printf("Finished: %s\n", node.Path)
-    // Custom logic here
-    return nil
-}
-```
-
-### Starting the Walk
-
-Begin traversal from specified root paths:
-
-```go
-// With fs.FS
-rootPaths := []string{".", "subdir"}
-if err := walker.Walk(rootPaths, preVisit, postVisit); err != nil {
-    log.Fatal(err)
-}
-
-// With virtual file tree
-paths := []string{
-    "/file1.txt",
-    "/subdir1/file2.txt",
-    "/subdir1/subdir2/file3.txt",
-}
-if err := virtualWalker.Walk(paths, preVisit, postVisit); err != nil {
+}, nil)
+if err != nil {
     log.Fatal(err)
 }
 ```
 
-### Retrieving Nodes by Path
+### Resolving Relative Paths
 
-You can retrieve any node by its absolute path during traversal:
-
-```go
-node, err := w.GetNodeByPath("/absolute/path/to/file.txt")
-if err != nil {
-    fmt.Println("Node not found:", err)
-} else {
-    fmt.Println("Found node:", node.Path)
-}
-```
-
-Or retrieve a node relative to another node:
+The Walker now automatically resolves relative paths to absolute paths:
 
 ```go
-relativeNode, err := w.GetNodeByRelativePath(baseNode, "relative/path.txt")
-if err != nil {
-    fmt.Println("Relative node not found:", err)
-} else {
-    fmt.Println("Found relative node:", relativeNode.Path)
-}
+absPath := walker.resolveRelativePath("relative/path")
+fmt.Println(absPath) // Prints the absolute path
 ```
 
 ## API Reference
 
-### Types
-
-#### Walker
-
-Represents the file system walker.
+### Walker
 
 ```go
 type Walker struct {
     FollowSymlinks bool
-    fs             fs.FS // Optional
-    // Other fields...
+    // Other unexported fields...
 }
+
+func NewWalker(opts ...WalkerOption) (*Walker, error)
+func (w *Walker) Walk(paths []string, preVisit VisitFunc, postVisit VisitFunc) error
+func (w *Walker) GetNodeByPath(path string) (*Node, error)
+func (w *Walker) GetNodeByRelativePath(baseNode *Node, relativePath string) (*Node, error)
+func (w *Walker) resolveRelativePath(path string) string
 ```
 
-- **Methods**:
-  - `NewWalker(opts ...WalkerOption) *Walker`
-  - `Walk(paths []string, preVisit VisitFunc, postVisit VisitFunc) error`
-  - `GetNodeByPath(path string) (*Node, error)`
-  - `GetNodeByRelativePath(baseNode *Node, relativePath string) (*Node, error)`
-
-#### Node
-
-Represents a file or directory node in the AST.
+### Node
 
 ```go
 type Node struct {
@@ -152,69 +98,20 @@ type Node struct {
     Parent   *Node
     Children []*Node
 }
+
+func (n *Node) GetType() NodeType
+func (n *Node) GetPath() string
+func (n *Node) GetParent() *Node
+func (n *Node) ImmediateChildren() []*Node
+func (n *Node) AllDescendants() []*Node
 ```
 
-- **Methods**:
-  - `GetType() NodeType`
-  - `GetPath() string`
-  - `GetParent() *Node`
-  - `ImmediateChildren() []*Node`
-  - `AllDescendants() []*Node`
+## Best Practices
 
-#### NodeType
-
-Enumeration of node types.
-
-```go
-type NodeType int
-
-const (
-    FileNode NodeType = iota
-    DirectoryNode
-)
-```
-
-#### VisitFunc
-
-Function signature for visit callbacks.
-
-```go
-type VisitFunc func(w *Walker, node *Node) error
-```
-
-### Functions
-
-#### NewWalker
-
-Creates a new `Walker` with optional configurations.
-
-```go
-func NewWalker(opts ...WalkerOption) *Walker
-```
-
-#### WithFS
-
-Option to set the file system for the Walker.
-
-```go
-func WithFS(fsys fs.FS) WalkerOption
-```
-
-#### WithFollowSymlinks
-
-Option to set whether the walker follows symbolic links.
-
-```go
-func WithFollowSymlinks(follow bool) WalkerOption
-```
-
-#### WalkerOption
-
-Function type for configuring the walker.
-
-```go
-type WalkerOption func(*Walker)
-```
+- Always check for errors when creating a new Walker or calling its methods.
+- Use the `resolveRelativePath` method when working with potentially relative paths.
+- Be mindful of memory usage when traversing large file systems.
+- Implement proper error handling in your visit functions.
 
 ## Examples
 
@@ -292,53 +189,6 @@ rootPaths := []string{"/etc", "/usr/local/etc"}
 if err := walker.Walk(rootPaths, preVisit, nil); err != nil {
     log.Fatal(err)
 }
-```
-
-## Best Practices
-
-- **Error Handling**: Always check for errors when calling walker methods.
-- **Resource Management**: Be mindful of memory usage, especially when traversing large filesystems.
-- **Avoid Side Effects**: Be cautious when modifying the filesystem during traversal, as it may affect the walker's behavior.
-- **Concurrency**: The current implementation is not thread-safe. If you need concurrent access, consider implementing synchronization.
-
-## Advanced Usage
-
-### Customizing File Parsing
-
-You can implement custom parsing logic within your visit functions:
-
-```go
-preVisit := func(w *filewalker.Walker, node *filewalker.Node) error {
-    if node.Type == filewalker.FileNode && filepath.Ext(node.Path) == ".json" {
-        content, err := os.ReadFile(node.Path)
-        if err != nil {
-            return err
-        }
-        var parsedData map[string]interface{}
-        err = json.Unmarshal(content, &parsedData)
-        if err != nil {
-            return err
-        }
-        // Process parsedData here
-    }
-    return nil
-}
-```
-
-### Modifying the Walker Behavior
-
-Add custom options or modify the walker by extending the `WalkerOption`:
-
-```go
-func WithCustomOption(value string) filewalker.WalkerOption {
-    return func(w *filewalker.Walker) {
-        w.CustomField = value
-    }
-}
-
-walker := filewalker.NewWalker(
-    WithCustomOption("myValue"),
-)
 ```
 
 ## Limitations
