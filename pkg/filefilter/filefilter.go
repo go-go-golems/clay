@@ -1,7 +1,9 @@
 package filefilter
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -26,6 +28,7 @@ type FileFilter struct {
 	DisableDefaultFilters bool                   `yaml:"disable-default-filters,omitempty"`
 	Verbose               bool                   `yaml:"verbose,omitempty"`
 	Profiles              map[string]*FileFilter `yaml:"profiles,omitempty"`
+	FilterBinaryFiles     bool                   `yaml:"filter-binary-files,omitempty"`
 
 	// Default values (not serialized)
 	DefaultExcludedExts           []string         `yaml:"-"`
@@ -117,6 +120,12 @@ func WithExcludeMatchPaths(patterns []string) FileFilterOption {
 func WithVerbose(verbose bool) FileFilterOption {
 	return func(ff *FileFilter) {
 		ff.Verbose = verbose
+	}
+}
+
+func WithFilterBinaryFiles(filter bool) FileFilterOption {
+	return func(ff *FileFilter) {
+		ff.FilterBinaryFiles = filter
 	}
 }
 
@@ -318,7 +327,39 @@ func (ff *FileFilter) shouldProcessFile(filePath string) bool {
 		return false
 	}
 
+	if ff.FilterBinaryFiles {
+		isBinary, err := isBinaryFile(filePath)
+		if err != nil {
+			// If there's an error checking, we'll assume it's not binary
+			return true
+		}
+		if isBinary {
+			return false
+		}
+	}
+
 	return true
+}
+
+// Add this helper function to detect binary files
+func isBinaryFile(filePath string) (bool, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false, err
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	// Read the first 512 bytes
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return false, err
+	}
+
+	// Check for null bytes in the first 512 bytes
+	return bytes.IndexByte(buffer[:n], 0) != -1, nil
 }
 
 // ToYAML serializes the FileFilter to YAML format
