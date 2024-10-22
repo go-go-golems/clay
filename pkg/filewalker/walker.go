@@ -238,6 +238,9 @@ func (w *Walker) buildFSNode(parent *Node, path string) (*Node, error) {
 			if !w.FollowSymlinks && isSymlink(info) {
 				continue
 			}
+			if childPath == path {
+				continue
+			}
 			childNode, err := w.buildFSNode(node, childPath)
 			if err != nil {
 				return nil, err
