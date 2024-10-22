@@ -139,7 +139,13 @@ func (w *Walker) Walk(paths []string, preVisit VisitFunc, postVisit VisitFunc) e
 func (w *Walker) walkFS(rootPaths []string, preVisit VisitFunc, postVisit VisitFunc) error {
 	for _, rootPath := range rootPaths {
 		absPath := w.resolveRelativePath(rootPath)
-		node, err := w.buildFSNode(nil, absPath)
+
+		relPath, err := filepath.Rel("/", absPath)
+		if err != nil {
+			relPath = absPath
+		}
+		_ = relPath
+		node, err := w.buildFSNode(nil, relPath)
 		if err != nil {
 			return err
 		}
