@@ -380,6 +380,9 @@ func FromYAML(data []byte) (*FileFilter, error) {
 		profile.DefaultExcludedExts = ff.DefaultExcludedExts
 		profile.DefaultExcludedDirs = ff.DefaultExcludedDirs
 		profile.DefaultExcludedMatchFilenames = ff.DefaultExcludedMatchFilenames
+		if profile.MaxFileSize == 0 {
+			profile.MaxFileSize = ff.MaxFileSize
+		}
 	}
 
 	return ff, nil
