@@ -139,11 +139,7 @@ func (w *Walker) Walk(paths []string, preVisit VisitFunc, postVisit VisitFunc) e
 func (w *Walker) walkFS(rootPaths []string, preVisit VisitFunc, postVisit VisitFunc) error {
 	for _, rootPath := range rootPaths {
 		absPath := w.resolveRelativePath(rootPath)
-		relPath, err := filepath.Rel("/", absPath)
-		if err != nil {
-			return fmt.Errorf("failed to get relative path: %w", err)
-		}
-		node, err := w.buildFSNode(nil, "/", relPath)
+		node, err := w.buildFSNode(nil, absPath)
 		if err != nil {
 			return err
 		}
@@ -206,7 +202,7 @@ func (w *Walker) addVirtualNode(root *Node, path string) error {
 	return nil
 }
 
-func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node, error) {
+func (w *Walker) buildFSNode(parent *Node, path string) (*Node, error) {
 	absPath := filepath.Join("/", path)
 	fileInfo, err := fs.Stat(w.fs, path)
 	if err != nil {
@@ -242,7 +238,7 @@ func (w *Walker) buildFSNode(parent *Node, basePath string, path string) (*Node,
 			if !w.FollowSymlinks && isSymlink(info) {
 				continue
 			}
-			childNode, err := w.buildFSNode(node, basePath, childPath)
+			childNode, err := w.buildFSNode(node, childPath)
 			if err != nil {
 				return nil, err
 			}

@@ -108,12 +108,14 @@ func TestWalker_DeeplyNested(t *testing.T) {
 		t.Fatalf("Failed to create Walker: %v", err)
 	}
 
+	allPaths := make([]string, 0)
 	var maxDepth int
 	err = w.Walk([]string{"."}, func(w *Walker, node *Node) error {
 		currentDepth := len(strings.Split(node.Path, string(os.PathSeparator)))
 		if currentDepth > maxDepth {
 			maxDepth = currentDepth
 		}
+		allPaths = append(allPaths, node.Path)
 		return nil
 	}, nil)
 
@@ -121,7 +123,8 @@ func TestWalker_DeeplyNested(t *testing.T) {
 		t.Fatalf("Walk failed: %v", err)
 	}
 
-	if maxDepth != depth+1 { // +1 for the file at the deepest level
+	// one for the root, one for file.txt
+	if maxDepth != depth+2 { // +1 for the file at the deepest level
 		t.Errorf("Expected max depth of %d, but got %d", depth+1, maxDepth)
 	}
 }
