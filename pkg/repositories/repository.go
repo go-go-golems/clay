@@ -2,14 +2,16 @@ package repositories
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"io/fs"
-	"path/filepath"
 )
 
 // A repository is a collection of commands and aliases, that can optionally be reloaded
@@ -139,13 +141,22 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 				}
 			}
 
+			// Check if the RootDocDirectory exists
+			file, err := directory.FS.Open(directory.RootDocDirectory)
+			if err != nil {
+				if os.IsNotExist(err) {
+					// Directory doesn't exist, skip loading
+					continue
+				}
+				// Return other errors
+				return err
+			}
+			_ = file.Close()
+
+			// If directory exists, proceed with loading sections
 			err = helpSystem.LoadSectionsFromFS(directory.FS, directory.RootDocDirectory)
 			if err != nil {
-				// if err is PathError, it means that the directory does not exist
-				// and we can safely ignore it
-				if _, ok := err.(*fs.PathError); !ok {
-					return err
-				}
+				return err
 			}
 		}
 		r.Add(commands...)
