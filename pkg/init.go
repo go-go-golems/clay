@@ -153,3 +153,36 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 
 	return nil
 }
+
+func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Viper, error) {
+	v := viper.New()
+	v.SetEnvPrefix(appName)
+
+	if configFile != "" {
+		v.SetConfigFile(configFile)
+		v.SetConfigType("yaml")
+	} else {
+		v.SetConfigType("yaml")
+		v.AddConfigPath(fmt.Sprintf("$HOME/.%s", appName))
+		v.AddConfigPath(fmt.Sprintf("/etc/%s", appName))
+
+		xdgConfigPath, err := os.UserConfigDir()
+		if err == nil {
+			v.AddConfigPath(fmt.Sprintf("%s/%s", xdgConfigPath, appName))
+		}
+	}
+
+	// Read the configuration file into Viper
+	err := v.ReadInConfig()
+	// if the file does not exist, continue normally
+	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		// Config file not found; ignore error
+	} else if err != nil {
+		// Config file was found but another error was produced
+		return nil, err
+	}
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
+
+	return v, nil
+}
