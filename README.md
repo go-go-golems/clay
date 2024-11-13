@@ -30,10 +30,6 @@
 
 # Clay
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/128441/217436490-f24c8ab4-0202-4091-9f0e-db3e97729934.jpg" alt="Clay Potter" width="400"/>
-</p>
-
 ![](https://img.shields.io/github/license/go-go-golems/glazed)
 ![](https://img.shields.io/github/actions/workflow/status/go-go-golems/glazed/push.yml?branch=main)
 
