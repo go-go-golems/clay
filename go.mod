@@ -1,12 +1,14 @@
 module github.com/go-go-golems/clay
 
-go 1.19
+go 1.23
+
+toolchain go1.23.2
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-go-golems/glazed v0.5.19
+	github.com/go-go-golems/glazed v0.5.21
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gorilla/websocket v1.5.3
