@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
@@ -224,6 +225,22 @@ func (r *Repository) Remove(prefixes ...[]string) {
 
 func (r *Repository) CollectCommands(prefix []string, recurse bool) []cmds.Command {
 	return r.Root.CollectCommands(prefix, recurse)
+}
+
+// GetCommand returns a single command by its full path name (components separated by /).
+// It returns the command and true if found, nil and false otherwise.
+func (r *Repository) GetCommand(name string) (cmds.Command, bool) {
+	if name == "" {
+		return nil, false
+	}
+
+	prefix := strings.Split(name, "/")
+	commands := r.CollectCommands(prefix, false)
+	if len(commands) == 0 {
+		return nil, false
+	}
+
+	return commands[0], true
 }
 
 func (r *Repository) FindNode(prefix []string) *TrieNode {
