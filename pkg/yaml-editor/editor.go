@@ -49,6 +49,9 @@ func (e *YAMLEditor) Save(filename string) error {
 // GetNode returns the node at the given path
 func (e *YAMLEditor) GetNode(path ...string) (*yaml.Node, error) {
 	if len(path) == 0 {
+		if e.root.Kind == yaml.DocumentNode && len(e.root.Content) > 0 {
+			return e.root.Content[0], nil
+		}
 		return e.root, nil
 	}
 
