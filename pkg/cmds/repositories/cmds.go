@@ -3,13 +3,12 @@ package repositories
 import (
 	"embed"
 	"fmt"
-	"os"
 	"path/filepath"
 
+	yaml_editor "github.com/go-go-golems/clay/pkg/yaml-editor"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 func NewRepositoriesGroupCommand() *cobra.Command {
@@ -39,21 +38,22 @@ func NewAddRepositoryCommand() *cobra.Command {
 				return fmt.Errorf("no config file found")
 			}
 
-			// Read the existing config file
-			data, err := os.ReadFile(configFile)
+			// Create a new YAML editor from the config file
+			editor, err := yaml_editor.NewYAMLEditorFromFile(configFile)
 			if err != nil {
-				return fmt.Errorf("error reading config file: %w", err)
+				return fmt.Errorf("error creating YAML editor: %w", err)
 			}
 
-			// Parse the YAML
-			var root yaml.Node
-			err = yaml.Unmarshal(data, &root)
+			// Get or create the repositories sequence node
+			repoNode, err := editor.GetNode("repositories")
 			if err != nil {
-				return fmt.Errorf("error parsing config file: %w", err)
+				// Create a new sequence node if it doesn't exist
+				repoNode = editor.CreateSequence()
+				err = editor.SetNode(repoNode, "repositories")
+				if err != nil {
+					return fmt.Errorf("error creating repositories node: %w", err)
+				}
 			}
-
-			// Find or create the repository node
-			repoNode := findOrCreateNode(&root, "repositories")
 
 			added := false
 
@@ -65,31 +65,30 @@ func NewAddRepositoryCommand() *cobra.Command {
 				}
 
 				// Check if the repository already exists
-				if repoExists(repoNode, absDir) {
+				exists := false
+				for _, node := range repoNode.Content {
+					if node.Value == absDir {
+						exists = true
+						break
+					}
+				}
+
+				if exists {
 					fmt.Printf("Repository %s already exists in the list. Skipping.\n", absDir)
 					continue
 				}
 
 				fmt.Printf("Adding %s to repository list.\n", absDir)
-				repoNode.Content = append(repoNode.Content, &yaml.Node{
-					Kind:  yaml.ScalarNode,
-					Value: absDir,
-				})
+				err = editor.AppendToSequence(editor.CreateScalar(absDir), "repositories")
+				if err != nil {
+					return fmt.Errorf("error appending repository: %w", err)
+				}
 				added = true
 			}
 
-			// Write the updated config back to file
-			f, err := os.Create(configFile)
-			if err != nil {
-				return fmt.Errorf("error opening config file for writing: %w", err)
-			}
-			defer f.Close()
-
-			encoder := yaml.NewEncoder(f)
-			encoder.SetIndent(2)
-			err = encoder.Encode(&root)
-			if err != nil {
-				return fmt.Errorf("error writing config file: %w", err)
+			// Save the updated config
+			if err := editor.Save(configFile); err != nil {
+				return fmt.Errorf("error saving config file: %w", err)
 			}
 
 			// Print out the total list of repositories
@@ -121,13 +120,17 @@ func NewRemoveRepositoryCommand() *cobra.Command {
 				return fmt.Errorf("no config file found")
 			}
 
-			// Read and parse the config file
-			root, err := readAndParseConfig(configFile)
+			// Create a new YAML editor from the config file
+			editor, err := yaml_editor.NewYAMLEditorFromFile(configFile)
 			if err != nil {
-				return err
+				return fmt.Errorf("error creating YAML editor: %w", err)
 			}
 
-			repoNode := findOrCreateNode(root, "repositories")
+			// Get the repositories sequence node
+			repoNode, err := editor.GetNode("repositories")
+			if err != nil {
+				return fmt.Errorf("repositories node not found: %w", err)
+			}
 
 			removed := false
 			for _, dir := range args {
@@ -136,22 +139,35 @@ func NewRemoveRepositoryCommand() *cobra.Command {
 					return fmt.Errorf("error getting absolute path for %s: %w", dir, err)
 				}
 
-				if removeRepo(repoNode, absDir) {
-					fmt.Printf("Removed %s from repository list.\n", absDir)
-					removed = true
-				} else {
+				// Find and remove the repository
+				for i, node := range repoNode.Content {
+					if node.Value == absDir {
+						err = editor.RemoveFromSequence(i, "repositories")
+						if err != nil {
+							return fmt.Errorf("error removing repository: %w", err)
+						}
+						fmt.Printf("Removed %s from repository list.\n", absDir)
+						removed = true
+						break
+					}
+				}
+
+				if !removed {
 					fmt.Printf("Repository %s not found in the list. Skipping.\n", absDir)
 				}
 			}
 
 			if removed {
-				// Write the updated config back to file
-				if err := writeConfig(configFile, root); err != nil {
-					return err
+				// Save the updated config
+				if err := editor.Save(configFile); err != nil {
+					return fmt.Errorf("error saving config file: %w", err)
 				}
 
 				fmt.Println("\nUpdated repository list:")
-				printRepos(repoNode)
+				repoNode, _ = editor.GetNode("repositories")
+				for _, node := range repoNode.Content {
+					fmt.Printf("- %s\n", node.Value)
+				}
 			}
 
 			return nil
@@ -170,113 +186,27 @@ func NewPrintRepositoriesCommand() *cobra.Command {
 				return fmt.Errorf("no config file found")
 			}
 
-			// Read and parse the config file
-			root, err := readAndParseConfig(configFile)
+			// Create a new YAML editor from the config file
+			editor, err := yaml_editor.NewYAMLEditorFromFile(configFile)
 			if err != nil {
-				return err
+				return fmt.Errorf("error creating YAML editor: %w", err)
 			}
 
-			repoNode := findOrCreateNode(root, "repositories")
+			// Get the repositories sequence node
+			repoNode, err := editor.GetNode("repositories")
+			if err != nil {
+				return fmt.Errorf("repositories node not found: %w", err)
+			}
 
-			printRepos(repoNode)
+			// Print repositories
+			for _, node := range repoNode.Content {
+				fmt.Printf("- %s\n", node.Value)
+			}
 
 			return nil
 		},
 	}
 	return cmd
-}
-
-func findOrCreateNode(root *yaml.Node, key string) *yaml.Node {
-	if root.Kind != yaml.DocumentNode {
-		root = &yaml.Node{
-			Kind:    yaml.DocumentNode,
-			Content: []*yaml.Node{root},
-		}
-	}
-
-	var mapNode *yaml.Node
-	if len(root.Content) > 0 && root.Content[0].Kind == yaml.MappingNode {
-		mapNode = root.Content[0]
-	} else {
-		mapNode = &yaml.Node{Kind: yaml.MappingNode}
-		root.Content = []*yaml.Node{mapNode}
-	}
-
-	for i := 0; i < len(mapNode.Content); i += 2 {
-		if mapNode.Content[i].Value == key {
-			if mapNode.Content[i+1].Kind != yaml.SequenceNode {
-				mapNode.Content[i+1] = &yaml.Node{Kind: yaml.SequenceNode}
-			}
-			return mapNode.Content[i+1]
-		}
-	}
-
-	keyNode := &yaml.Node{
-		Kind:  yaml.ScalarNode,
-		Value: key,
-	}
-	valueNode := &yaml.Node{
-		Kind: yaml.SequenceNode,
-	}
-	mapNode.Content = append(mapNode.Content, keyNode, valueNode)
-	return valueNode
-}
-
-func repoExists(repoNode *yaml.Node, dir string) bool {
-	for _, node := range repoNode.Content {
-		if node.Value == dir {
-			return true
-		}
-	}
-	return false
-}
-
-func removeRepo(repoNode *yaml.Node, dir string) bool {
-	for i, node := range repoNode.Content {
-		if node.Value == dir {
-			repoNode.Content = append(repoNode.Content[:i], repoNode.Content[i+1:]...)
-			return true
-		}
-	}
-	return false
-}
-
-func printRepos(repoNode *yaml.Node) {
-	for _, node := range repoNode.Content {
-		fmt.Printf("- %s\n", node.Value)
-	}
-}
-
-func readAndParseConfig(configFile string) (*yaml.Node, error) {
-	data, err := os.ReadFile(configFile)
-	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
-	}
-
-	var root yaml.Node
-	err = yaml.Unmarshal(data, &root)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing config file: %w", err)
-	}
-
-	return &root, nil
-}
-
-func writeConfig(configFile string, root *yaml.Node) error {
-	f, err := os.Create(configFile)
-	if err != nil {
-		return fmt.Errorf("error opening config file for writing: %w", err)
-	}
-	defer f.Close()
-
-	encoder := yaml.NewEncoder(f)
-	encoder.SetIndent(2)
-	err = encoder.Encode(root)
-	if err != nil {
-		return fmt.Errorf("error writing config file: %w", err)
-	}
-
-	return nil
 }
 
 //go:embed docs/*
