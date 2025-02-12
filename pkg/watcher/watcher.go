@@ -2,14 +2,15 @@ package watcher
 
 import (
 	"context"
-	"github.com/bmatcuk/doublestar/v4"
-	"github.com/fsnotify/fsnotify"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/bmatcuk/doublestar/v4"
+	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type WriteCallback func(path string) error
@@ -24,6 +25,8 @@ type RemoveCallback func(path string) error
 type Watcher struct {
 	paths          []string
 	masks          []string
+	watchedDirs    map[string]bool     // track all watched directories
+	fileParentDirs map[string][]string // track directories that are only watched because they contain files, and which files
 	writeCallback  WriteCallback
 	removeCallback RemoveCallback
 	breakOnError   bool
@@ -47,7 +50,7 @@ func (w *Watcher) Run(ctx context.Context) error {
 	// Add each path to the watcher
 	for _, path := range w.paths {
 		log.Debug().Str("path", path).Msg("Adding recursive path to watcher")
-		err = addRecursive(watcher, path)
+		err = w.addRecursive(watcher, path)
 		if err != nil {
 			return err
 		}
@@ -67,14 +70,43 @@ func (w *Watcher) Run(ctx context.Context) error {
 			}
 			log.Debug().Str("op", event.Op.String()).
 				Str("name", event.Name).
-				//Strs("watchList", watcher.WatchList()).
 				Msg("Received fsnotify event")
 
-			// if it is a deletion, remove the directory from the watcher
-			// TODO(manuel, 2023-03-27) There's a race condition here where a rename is a Create followed by a Remove.
-			// See also https://github.com/go-go-golems/cliopatra/issues/10
+			// Handle empty event names
+			if event.Name == "" {
+				continue
+			}
+
+			// Get the directory of the event
+			eventDir := filepath.Dir(event.Name)
+			if !strings.HasSuffix(eventDir, string(os.PathSeparator)) {
+				eventDir += string(os.PathSeparator)
+			}
+
+			// If this is a file parent directory, we only care about specific files
+			if w.fileParentDirs[eventDir] != nil {
+				// For file parent directories, check if this is a file we care about
+				fileName := filepath.Base(event.Name)
+				found := false
+				for _, f := range w.fileParentDirs[eventDir] {
+					if f == fileName {
+						found = true
+						break
+					}
+				}
+				if !found {
+					log.Debug().
+						Str("path", event.Name).
+						Str("dir", eventDir).
+						Str("file", fileName).
+						Msg("Skipping event for untracked file in parent directory")
+					continue
+				}
+			}
+
+			// Handle regular directory events...
 			if event.Op&fsnotify.Remove == fsnotify.Remove {
-				err = removePathsWithPrefix(watcher, event.Name)
+				err = w.removePathsWithPrefix(watcher, event.Name)
 				if err != nil {
 					log.Warn().Err(err).Str("path", event.Name).Msg("Could not remove path from watcher")
 					if w.breakOnError {
@@ -84,7 +116,7 @@ func (w *Watcher) Run(ctx context.Context) error {
 			}
 
 			if event.Op&fsnotify.Rename == fsnotify.Rename {
-				err = removePathsWithPrefix(watcher, event.Name)
+				err = w.removePathsWithPrefix(watcher, event.Name)
 				if err != nil {
 					if errno, ok := err.(syscall.Errno); ok && errno == syscall.EINVAL {
 						// This means that the file was already deleted, and the inotify already removed,
@@ -101,17 +133,15 @@ func (w *Watcher) Run(ctx context.Context) error {
 			// if a new directory is created, add it to the watcher
 			if event.Op&fsnotify.Create == fsnotify.Create {
 				info, err := os.Stat(event.Name)
-
 				if err != nil {
 					log.Debug().Err(err).Str("path", event.Name).Msg("Could not stat path")
 					continue
 				}
 
-				// if a directory was created, we always add it. For files, we must first check if it matches
-				// the globs.
+				// Handle directory creation
 				if info.IsDir() {
 					log.Debug().Str("path", event.Name).Msg("Adding new directory to watcher")
-					err = addRecursive(watcher, event.Name)
+					err = w.addRecursive(watcher, event.Name)
 					if err != nil {
 						log.Warn().Err(err).Str("path", event.Name).Msg("Could not add directory to watcher")
 						if w.breakOnError {
@@ -122,7 +152,7 @@ func (w *Watcher) Run(ctx context.Context) error {
 				}
 			}
 
-			// check if the path matches the globs
+			// Only check masks for non-file-parent directories
 			if len(w.masks) > 0 {
 				matched := false
 				for _, mask := range w.masks {
@@ -139,21 +169,11 @@ func (w *Watcher) Run(ctx context.Context) error {
 						matched = true
 						break
 					}
-
 				}
 
 				if !matched {
-					log.Debug().Str("path", event.Name).Strs("masks", w.masks).Msg("Skipping event because it does not match the mask")
 					continue
 				}
-			}
-
-			if event.Name == "" {
-				// This is a workaround for a bug in fsnotify where the name is empty.
-				// This might be a race condition with removing the renamed file and adding it again.
-				// The Rename event is triggered by MOVE_FROM. Ignoring the empty path seems to work fine,
-				// the Rename on the proper path is triggered afterwards.
-				continue
 			}
 
 			// if the new file is valid, add it to the watcher for changes and removal
@@ -237,8 +257,10 @@ func WithBreakOnError(breakOnError bool) Option {
 
 func NewWatcher(options ...Option) *Watcher {
 	ret := &Watcher{
-		paths: []string{},
-		masks: []string{},
+		paths:          []string{},
+		masks:          []string{},
+		watchedDirs:    make(map[string]bool),
+		fileParentDirs: make(map[string][]string),
 	}
 
 	for _, opt := range options {
@@ -249,20 +271,15 @@ func NewWatcher(options ...Option) *Watcher {
 }
 
 // removePathsWithPrefix removes `name` and all subdirectories from the watcher
-func removePathsWithPrefix(watcher *fsnotify.Watcher, name string) error {
-	// if the path is "", which happens on linux because we are still watching individual files there,
-	// ignore, because we would otherwise remove all the watched prefixes.
+func (w *Watcher) removePathsWithPrefix(watcher *fsnotify.Watcher, name string) error {
 	if name == "" {
 		log.Debug().Msg("Ignoring empty prefixes")
 		return nil
 	}
-	// we do the "recursion" by checking the watchlist of the watcher for all watched directories
-	// that has name as prefix
+
 	watchlist := watcher.WatchList()
-	log.Debug().
-		//Strs("watchlist", watchlist).
-		Str("name", name).
-		Msg("Removing paths with prefix")
+	log.Debug().Str("name", name).Msg("Removing paths with prefix")
+
 	for _, path := range watchlist {
 		if strings.HasPrefix(path, name) {
 			log.Debug().Str("path", path).Msg("Removing path from watcher")
@@ -270,6 +287,8 @@ func removePathsWithPrefix(watcher *fsnotify.Watcher, name string) error {
 			if err != nil {
 				return err
 			}
+			delete(w.watchedDirs, path)
+			delete(w.fileParentDirs, path)
 		}
 	}
 
@@ -277,52 +296,41 @@ func removePathsWithPrefix(watcher *fsnotify.Watcher, name string) error {
 }
 
 // Recursively add a path to the watcher
-func addRecursive(watcher *fsnotify.Watcher, path string) error {
-	if !strings.HasSuffix(path, string(os.PathSeparator)) {
-		path += string(os.PathSeparator)
-	}
-
-	addPath := strings.TrimSuffix(path, string(os.PathSeparator))
-
+func (w *Watcher) addRecursive(watcher *fsnotify.Watcher, path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
 
-	// check if we have permissions to watch
-	if info.Mode()&os.ModeSymlink != 0 {
-		log.Debug().Str("path", addPath).Msg("Skipping symlink")
-		return nil
-	}
-
-	// open and then close to check if we can actually read from the file
-	f, err := os.Open(addPath)
-	if err != nil {
-		log.Warn().Str("path", addPath).Msg("Skipping path because we cannot read it")
-		return nil
-	}
-	_ = f.Close()
-
-	log.Debug().Str("path", addPath).Msg("Adding path to watcher")
-	err = watcher.Add(addPath)
-	if err != nil {
-		return err
-	}
-
 	if info.IsDir() {
-		log.Debug().Str("path", path).Msg("Walking path to add subpaths to watcher")
-		err = filepath.Walk(path, func(subpath string, info os.FileInfo, err error) error {
+		// Directory handling
+		dirPath := path
+		if !strings.HasSuffix(dirPath, string(os.PathSeparator)) {
+			dirPath += string(os.PathSeparator)
+		}
+
+		if !w.watchedDirs[dirPath] {
+			err = watcher.Add(dirPath)
+			if err != nil {
+				return err
+			}
+			w.watchedDirs[dirPath] = true
+			log.Debug().Str("path", dirPath).Msg("Added directory to watcher")
+		}
+
+		// Continue with recursive directory handling...
+		err = filepath.Walk(dirPath, func(subpath string, info os.FileInfo, err error) error {
 			if err != nil {
 				log.Warn().Err(err).Str("path", subpath).Msg("Error walking path")
 				return nil
 			}
-			if subpath == path {
+			if subpath == dirPath {
 				return nil
 			}
 			log.Trace().Str("path", subpath).Msg("Testing subpath to watcher")
 			if info.IsDir() {
 				log.Debug().Str("path", subpath).Msg("Adding subpath to watcher")
-				err = addRecursive(watcher, subpath)
+				err = w.addRecursive(watcher, subpath)
 				if err != nil {
 					return err
 				}
@@ -331,6 +339,50 @@ func addRecursive(watcher *fsnotify.Watcher, path string) error {
 		})
 		if err != nil {
 			return err
+		}
+	} else {
+		// File handling - add parent directory
+		parentDir := filepath.Dir(path)
+		if !strings.HasSuffix(parentDir, string(os.PathSeparator)) {
+			parentDir += string(os.PathSeparator)
+		}
+
+		fileName := filepath.Base(path)
+
+		if !w.watchedDirs[parentDir] {
+			err = watcher.Add(parentDir)
+			if err != nil {
+				return err
+			}
+			w.watchedDirs[parentDir] = true
+			w.fileParentDirs[parentDir] = []string{fileName}
+			log.Debug().
+				Str("path", parentDir).
+				Str("file", fileName).
+				Msg("Added parent directory to watcher for file")
+		} else if w.fileParentDirs[parentDir] != nil {
+			// Directory is already watched, just add the file to the list if not already there
+			found := false
+			for _, f := range w.fileParentDirs[parentDir] {
+				if f == fileName {
+					found = true
+					break
+				}
+			}
+			if !found {
+				w.fileParentDirs[parentDir] = append(w.fileParentDirs[parentDir], fileName)
+				log.Debug().
+					Str("path", parentDir).
+					Str("file", fileName).
+					Msg("Added file to watch list")
+			}
+		} else {
+			// Directory was being watched directly, now also track a specific file
+			w.fileParentDirs[parentDir] = []string{fileName}
+			log.Debug().
+				Str("path", parentDir).
+				Str("file", fileName).
+				Msg("Added file tracking to watched directory")
 		}
 	}
 	return nil

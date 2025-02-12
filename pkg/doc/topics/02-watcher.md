@@ -5,6 +5,7 @@ The Watcher package provides a simple and flexible way to watch for file system 
 ## Features
 
 - Recursive directory watching
+- Individual file watching with parent directory tracking
 - File pattern filtering using doublestar masks
 - Customizable callbacks for write and remove events
 - Configurable error handling
@@ -60,6 +61,27 @@ w := watcher.NewWatcher(
 ```
 
 This feature allows you to monitor an entire directory tree for changes, automatically including new subdirectories as they are created.
+
+### Individual File Watching
+
+The Watcher can efficiently watch individual files by monitoring their parent directories:
+
+```go
+w := watcher.NewWatcher(
+    watcher.WithPaths(
+        "./config/app.yaml",
+        "./config/db.yaml",
+    ),
+)
+```
+
+When watching individual files:
+- The watcher monitors the parent directory
+- Only events for the specified files trigger callbacks
+- Other files in the same directory are ignored
+- Directory watching is handled automatically
+
+This is more efficient than watching individual files directly, especially on systems with inotify limits.
 
 ### File Pattern Filtering
 

@@ -40,31 +40,16 @@ func LoadCommandsFromInputs(
 	repository := NewRepository(
 		WithCommandLoader(commandLoader),
 		WithDirectories(directories...),
+		WithFiles(files...),
 	)
 
 	helpSystem := help.NewHelpSystem()
-	// TODO(manuel, 2024-01-20) We actually need to load the files here as well to properly do the alias resolution
 	err := repository.LoadCommands(helpSystem)
 	if err != nil {
 		return nil, err
 	}
 
-	commands := repository.CollectCommands([]string{}, true)
-	for _, file := range files {
-		f, file_, err := loaders.FileNameToFsFilePath(file)
-		if err != nil {
-			return nil, err
-		}
-
-		cmds_, err := commandLoader.LoadCommands(f, file_, []cmds.CommandDescriptionOption{}, []alias.Option{})
-		if err != nil {
-			return nil, err
-		}
-
-		commands = append(commands, cmds_...)
-	}
-
-	return commands, nil
+	return repository.CollectCommands([]string{}, true), nil
 }
 
 func LoadRepositories(
