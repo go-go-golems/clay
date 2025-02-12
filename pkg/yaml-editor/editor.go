@@ -165,6 +165,43 @@ func (e *YAMLEditor) GetMapNode(key string, mapNode *yaml.Node) (*yaml.Node, err
 	return nil, fmt.Errorf("key %s not found", key)
 }
 
+// CreateValueNode creates a new node from a value of any supported type
+func (e *YAMLEditor) CreateValueNode(value interface{}) (*yaml.Node, error) {
+	switch v := value.(type) {
+	case string:
+		return &yaml.Node{Kind: yaml.ScalarNode, Value: v}, nil
+	case int:
+		return &yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", v)}, nil
+	case bool:
+		return &yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%v", v)}, nil
+	case *yaml.Node:
+		return v, nil
+	case []interface{}:
+		seqNode := &yaml.Node{Kind: yaml.SequenceNode}
+		for _, item := range v {
+			itemNode, err := e.CreateValueNode(item)
+			if err != nil {
+				return nil, fmt.Errorf("error creating sequence item: %w", err)
+			}
+			seqNode.Content = append(seqNode.Content, itemNode)
+		}
+		return seqNode, nil
+	case map[string]interface{}:
+		mapNode := &yaml.Node{Kind: yaml.MappingNode}
+		for k, val := range v {
+			keyNode := &yaml.Node{Kind: yaml.ScalarNode, Value: k}
+			valNode, err := e.CreateValueNode(val)
+			if err != nil {
+				return nil, fmt.Errorf("error creating map value for key %s: %w", k, err)
+			}
+			mapNode.Content = append(mapNode.Content, keyNode, valNode)
+		}
+		return mapNode, nil
+	default:
+		return nil, fmt.Errorf("unsupported value type: %T", value)
+	}
+}
+
 // CreateMap creates a new mapping node with the given key-value pairs
 func (e *YAMLEditor) CreateMap(pairs ...interface{}) (*yaml.Node, error) {
 	if len(pairs)%2 != 0 {
@@ -181,18 +218,9 @@ func (e *YAMLEditor) CreateMap(pairs ...interface{}) (*yaml.Node, error) {
 			return nil, fmt.Errorf("key at index %d must be a string", i)
 		}
 
-		var valueNode *yaml.Node
-		switch v := pairs[i+1].(type) {
-		case string:
-			valueNode = &yaml.Node{Kind: yaml.ScalarNode, Value: v}
-		case int:
-			valueNode = &yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", v)}
-		case bool:
-			valueNode = &yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%v", v)}
-		case *yaml.Node:
-			valueNode = v
-		default:
-			return nil, fmt.Errorf("unsupported value type at index %d", i+1)
+		valueNode, err := e.CreateValueNode(pairs[i+1])
+		if err != nil {
+			return nil, fmt.Errorf("error creating value for key %s: %w", key, err)
 		}
 
 		node.Content = append(node.Content,
