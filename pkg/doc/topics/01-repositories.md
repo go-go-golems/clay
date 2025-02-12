@@ -22,7 +22,7 @@ import (
     "github.com/go-go-golems/glazed/pkg/help"
 )
 
-// Create a new repository
+// Create a new repository with both directories and individual files
 repo := repositories.NewRepository(
     repositories.WithDirectories(repositories.Directory{
         FS:               os.DirFS("/path/to/commands"),
@@ -31,6 +31,10 @@ repo := repositories.NewRepository(
         WatchDirectory:   "/path/to/commands",
         Name:            "my-commands",
         SourcePrefix:    "file",
+    }),
+    repositories.WithFiles([]string{
+        "/path/to/specific/command1.yaml",
+        "/path/to/specific/command2.yaml",
     }),
 )
 
@@ -46,7 +50,7 @@ if err != nil {
 
 ### Loading Commands from Multiple Sources
 
-You can load commands from multiple directories:
+You can load commands from both directories and individual files:
 
 ```go
 repo := repositories.NewRepository(
@@ -56,12 +60,11 @@ repo := repositories.NewRepository(
             RootDirectory:    ".",
             Name:            "commands1",
         },
-        repositories.Directory{
-            FS:               os.DirFS("/path/to/commands2"),
-            RootDirectory:    ".",
-            Name:            "commands2",
-        },
     ),
+    repositories.WithFiles([]string{
+        "/path/to/command1.yaml",
+        "/path/to/command2.yaml",
+    }),
 )
 ```
 
@@ -82,7 +85,7 @@ directCommands := repo.CollectCommands([]string{"group"}, false)
 
 ## File System Watching
 
-One of the powerful features of the repository system is its ability to watch directories for changes and automatically update commands.
+The repository system can watch both directories and individual files for changes and automatically update commands.
 
 ### Setting Up a Watcher
 
@@ -106,6 +109,8 @@ The watcher will automatically:
 - Load new commands when files are created or modified
 - Remove commands when files are deleted
 - Update the repository's command tree accordingly
+- Efficiently watch individual files by monitoring their parent directories
+- Only trigger on events for specifically watched files when monitoring individual files
 
 ### Custom Watch Callbacks
 
