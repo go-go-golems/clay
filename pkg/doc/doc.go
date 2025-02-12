@@ -1,13 +1,11 @@
-package pkg
+package doc
 
 import (
 	"embed"
-
 	"github.com/go-go-golems/glazed/pkg/help"
 )
 
-//go:embed filewalker/doc/*
-//go:embed filefilter/doc/*
+//go:embed *
 var docFS embed.FS
 
 func AddDocToHelpSystem(helpSystem *help.HelpSystem) error {
