@@ -2,15 +2,42 @@ package repositories
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
+
 	"github.com/go-go-golems/clay/pkg/watcher"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"path/filepath"
-	"strings"
 )
+
+// getProcessedPaths takes a path and returns the processed paths needed for command operations
+func (r *Repository) getProcessedPaths(path string) (string, string, []string, error) {
+	filePath := path
+	if len(path) > 0 && path[0] != '/' {
+		var err error
+		filePath, err = filepath.Abs(path)
+		if err != nil {
+			return "", "", nil, err
+		}
+	}
+
+	// try to strip all r.Directories from path
+	strippedPath := path
+	for _, dir := range r.Directories {
+		if strings.HasPrefix(path, dir.WatchDirectory) && dir.WatchDirectory != "." {
+			strippedPath = strings.TrimPrefix(path, dir.WatchDirectory)
+			break
+		}
+	}
+	fullPath := strings.TrimPrefix(filePath, "/")
+
+	// get directory of file
+	parents := loaders.GetParentsFromDir(filepath.Dir(strippedPath))
+	return filePath, fullPath, parents, nil
+}
 
 func (r *Repository) Watch(
 	ctx context.Context,
@@ -31,25 +58,11 @@ func (r *Repository) Watch(
 	options = append(options,
 		watcher.WithWriteCallback(func(path string) error {
 			log.Debug().Msgf("Loading %s", path)
-			filePath := strings.TrimPrefix(path, "/")
-			filePath, err := filepath.Abs(filePath)
+			filePath, fullPath, parents, err := r.getProcessedPaths(path)
 			if err != nil {
 				return err
 			}
-			fullPath := path
 
-			// try to strip all r.Directories from path
-			// if it's not possible, then just use path
-			for _, dir := range r.Directories {
-				if strings.HasPrefix(path, dir.WatchDirectory) && dir.WatchDirectory != "." {
-					path = strings.TrimPrefix(path, dir.WatchDirectory)
-					break
-				}
-			}
-			path = strings.TrimPrefix(path, "/")
-
-			// get directory of file
-			parents := loaders.GetParentsFromDir(filepath.Dir(path))
 			cmdOptions_ := []cmds.CommandDescriptionOption{
 				cmds.WithSource(fullPath),
 				cmds.WithParents(parents...)}
@@ -72,7 +85,14 @@ func (r *Repository) Watch(
 		}),
 		watcher.WithRemoveCallback(func(path string) error {
 			log.Debug().Msgf("Removing %s", path)
-			r.Remove([]string{path})
+			_, _, parents, err := r.getProcessedPaths(path)
+			if err != nil {
+				return err
+			}
+
+			// XXX we would actually need to map the command name to the file name because at this point we assume that the command name is the file base name.
+			parents = append(parents, strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)))
+			r.Remove(parents)
 			return nil
 		}),
 		watcher.WithPaths(paths...),
