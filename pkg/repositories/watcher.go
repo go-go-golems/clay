@@ -54,6 +54,7 @@ func (r *Repository) Watch(
 			paths = append(paths, dir.WatchDirectory)
 		}
 	}
+	paths = append(paths, r.Files...)
 
 	options = append(options,
 		watcher.WithWriteCallback(func(path string) error {
