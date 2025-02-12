@@ -64,12 +64,26 @@ func (r *Repository) Watch(
 				return err
 			}
 
+			// Check if this is an individually tracked file
+			isTrackedFile := false
+			for _, f := range r.Files {
+				if f == path {
+					isTrackedFile = true
+					break
+				}
+			}
+
 			cmdOptions_ := []cmds.CommandDescriptionOption{
 				cmds.WithSource(fullPath),
-				cmds.WithParents(parents...)}
+			}
 			aliasOptions := []alias.Option{
 				alias.WithSource(fullPath),
-				alias.WithParents(parents...),
+			}
+
+			// Only add parents if this isn't a tracked file
+			if !isTrackedFile {
+				cmdOptions_ = append(cmdOptions_, cmds.WithParents(parents...))
+				aliasOptions = append(aliasOptions, alias.WithParents(parents...))
 			}
 
 			fs_, filePath, err := loaders.FileNameToFsFilePath(filePath)
