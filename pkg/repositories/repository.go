@@ -35,6 +35,7 @@ type Directory struct {
 type Repository struct {
 	Name        string
 	Directories []Directory
+	Files       []string // New field for individual files
 	// The root of the repository.
 	Root           *TrieNode
 	updateCallback UpdateCallback
@@ -78,6 +79,12 @@ func WithRemoveCallback(callback RemoveCallback) RepositoryOption {
 	}
 }
 
+func WithFiles(files ...string) RepositoryOption {
+	return func(r *Repository) {
+		r.Files = files
+	}
+}
+
 // NewRepository creates a new repository.
 func NewRepository(options ...RepositoryOption) *Repository {
 	ret := &Repository{
@@ -92,11 +99,11 @@ func NewRepository(options ...RepositoryOption) *Repository {
 // LoadCommands initializes the repository by loading all commands from the loader,
 // if available.
 func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.CommandDescriptionOption) error {
-	// TODO(manuel, 2024-01-18) Shouldn't the loader be required?
 	if r.loader != nil {
 		commands := make([]cmds.Command, 0)
 		aliases := make([]*alias.CommandAlias, 0)
 
+		// Load from directories
 		for _, directory := range r.Directories {
 			source := ""
 			if directory.SourcePrefix != "" {
@@ -132,7 +139,6 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 			}
 			for _, command := range commands_ {
 				switch v := command.(type) {
-				// import to put alias first as the more specific one
 				case *alias.CommandAlias:
 					aliases = append(aliases, v)
 				case cmds.Command:
@@ -160,6 +166,44 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 				return err
 			}
 		}
+
+		// Load from individual files
+		for _, file := range r.Files {
+			fs, filePath, err := loaders.FileNameToFsFilePath(file)
+			if err != nil {
+				return errors.Wrapf(err, "could not get fs and file path for %s", file)
+			}
+
+			source := ""
+			if r.Name != "" {
+				source = r.Name + ":"
+			}
+			source = source + "file:" + file
+
+			commands_, err := r.loader.LoadCommands(
+				fs,
+				filePath,
+				append([]cmds.CommandDescriptionOption{
+					cmds.WithSource(source),
+				}, options...),
+				[]alias.Option{},
+			)
+			if err != nil {
+				return errors.Wrapf(err, "could not load commands from file %s", file)
+			}
+
+			for _, command := range commands_ {
+				switch v := command.(type) {
+				case *alias.CommandAlias:
+					aliases = append(aliases, v)
+				case cmds.Command:
+					commands = append(commands, v)
+				default:
+					return errors.New(fmt.Sprintf("unknown command type %T", v))
+				}
+			}
+		}
+
 		r.Add(commands...)
 		for _, alias_ := range aliases {
 			r.Add(alias_)
