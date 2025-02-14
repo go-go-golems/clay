@@ -1,6 +1,9 @@
 package sql
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
@@ -17,16 +20,25 @@ func BuildCobraCommandWithSqletonMiddlewares(
 	options_ := append([]cli.CobraParserOption{
 		cli.WithCobraMiddlewaresFunc(GetCobraCommandSqletonMiddlewares),
 		cli.WithCobraShortHelpLayers(layers.DefaultSlug, DbtSlug, SqlConnectionSlug, flags.SqlHelpersSlug),
+		cli.WithCreateCommandSettingsLayer(),
+		cli.WithProfileSettingsLayer(),
+		cli.WithProfileSettingsLayer(),
 	}, options...)
 
 	return cli.BuildCobraCommandFromCommand(cmd, options_...)
 }
 
 func GetCobraCommandSqletonMiddlewares(
-	commandSettings *cli.GlazedCommandSettings,
+	parsedCommandLayers *layers.ParsedLayers,
 	cmd *cobra.Command,
 	args []string,
 ) ([]middlewares.Middleware, error) {
+	commandSettings := &cli.CommandSettings{}
+	err := parsedCommandLayers.InitializeStruct(cli.CommandSettingsSlug, commandSettings)
+	if err != nil {
+		return nil, err
+	}
+
 	middlewares_ := []middlewares.Middleware{
 		middlewares.ParseFromCobraCommand(cmd,
 			parameters.WithParseStepSource("cobra"),
@@ -39,7 +51,39 @@ func GetCobraCommandSqletonMiddlewares(
 	if commandSettings.LoadParametersFromFile != "" {
 		middlewares_ = append(middlewares_,
 			middlewares.LoadParametersFromFile(commandSettings.LoadParametersFromFile))
+
 	}
+
+	profileSettings := &cli.ProfileSettings{}
+	err = parsedCommandLayers.InitializeStruct(cli.ProfileSettingsSlug, profileSettings)
+	if err != nil {
+		return nil, err
+	}
+
+	xdgConfigPath, err := os.UserConfigDir()
+	if err != nil {
+		return nil, err
+	}
+
+	defaultProfileFile := fmt.Sprintf("%s/sqleton/profiles.yaml", xdgConfigPath)
+	if profileSettings.ProfileFile == "" {
+		profileSettings.ProfileFile = defaultProfileFile
+	}
+	if profileSettings.Profile == "" {
+		profileSettings.Profile = "default"
+	}
+	middlewares_ = append(middlewares_,
+		middlewares.GatherFlagsFromProfiles(
+			defaultProfileFile,
+			profileSettings.ProfileFile,
+			profileSettings.Profile,
+			parameters.WithParseStepSource("profiles"),
+			parameters.WithParseStepMetadata(map[string]interface{}{
+				"profileFile": profileSettings.ProfileFile,
+				"profile":     profileSettings.Profile,
+			}),
+		),
+	)
 
 	middlewares_ = append(middlewares_,
 		middlewares.WrapWithWhitelistedLayers(
