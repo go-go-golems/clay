@@ -1,10 +1,11 @@
-package repositories
+package trie
 
 import (
+	"sort"
+
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/rs/zerolog/log"
-	"sort"
 )
 
 type TrieNode struct {
@@ -207,4 +208,23 @@ func (r *TrieNode) ToRenderNode() *RenderNode {
 	})
 
 	return ret
+}
+
+// InsertNode inserts a node at the given prefix path
+func (t *TrieNode) InsertNode(prefix []string, node *TrieNode) {
+	current := t
+	for _, component := range prefix {
+		if child, ok := current.Children[component]; ok {
+			current = child
+		} else {
+			newNode := NewTrieNode([]cmds.Command{}, nil)
+			current.Children[component] = newNode
+			current = newNode
+		}
+	}
+	// Copy commands and children from the node to insert
+	for k, v := range node.Children {
+		current.Children[k] = v
+	}
+	current.Commands = append(current.Commands, node.Commands...)
 }

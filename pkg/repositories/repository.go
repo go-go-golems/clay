@@ -1,16 +1,21 @@
 package repositories
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/go-go-golems/clay/pkg/repositories/mcp"
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/go-go-golems/glazed/pkg/help"
+
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -37,7 +42,7 @@ type Repository struct {
 	Directories []Directory
 	Files       []string // New field for individual files
 	// The root of the repository.
-	Root           *TrieNode
+	Root           *trie.TrieNode
 	updateCallback UpdateCallback
 	removeCallback RemoveCallback
 
@@ -88,7 +93,7 @@ func WithFiles(files ...string) RepositoryOption {
 // NewRepository creates a new repository.
 func NewRepository(options ...RepositoryOption) *Repository {
 	ret := &Repository{
-		Root: NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{}),
+		Root: trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{}),
 	}
 	for _, opt := range options {
 		opt(ret)
@@ -287,11 +292,11 @@ func (r *Repository) GetCommand(name string) (cmds.Command, bool) {
 	return commands[0], true
 }
 
-func (r *Repository) FindNode(prefix []string) *TrieNode {
+func (r *Repository) FindNode(prefix []string) *trie.TrieNode {
 	return r.Root.FindNode(prefix)
 }
 
-func (r *Repository) GetRenderNode(prefix []string) (*RenderNode, bool) {
+func (r *Repository) GetRenderNode(prefix []string) (*trie.RenderNode, bool) {
 	node := r.Root.FindNode(prefix)
 	if node == nil {
 		return nil, false
@@ -308,4 +313,37 @@ func (r *Repository) GetRenderNode(prefix []string) (*RenderNode, bool) {
 	}
 
 	return ret, true
+}
+
+// ListTools returns all commands in the repository as tools.
+// The tool name is constructed by joining the command's parents with "/".
+func (r *Repository) ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error) {
+	// Collect all commands from the root
+	commands := r.Root.CollectCommands([]string{}, true)
+
+	tools := make([]mcp.Tool, 0, len(commands))
+	for _, cmd := range commands {
+		desc := cmd.Description()
+
+		schema, err := desc.ToJsonSchema()
+		if err != nil {
+			return nil, "", err
+		}
+
+		rawJsonSchema, err := json.Marshal(schema)
+		if err != nil {
+			return nil, "", err
+		}
+		// Create tool from command
+		tool := mcp.Tool{
+			Name:        desc.FullPath(),
+			Description: desc.Short,
+			InputSchema: rawJsonSchema,
+		}
+
+		tools = append(tools, tool)
+	}
+
+	// For now, return all tools without pagination
+	return tools, "", nil
 }

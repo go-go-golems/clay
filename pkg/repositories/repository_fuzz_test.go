@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/stretchr/testify/assert"
@@ -115,7 +116,7 @@ func FuzzTrieNode(f *testing.F) {
 	f.Fuzz(func(t *testing.T, inputStr string) {
 		inputs := inputsFromString(inputStr)
 
-		node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+		node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 		require.NotNil(t, node)
 
 		for _, input := range inputs {
