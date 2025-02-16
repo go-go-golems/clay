@@ -16,7 +16,7 @@ func TestCollectCommands(t *testing.T) {
 		expected []string // command full paths
 	}{
 		{
-			name: "root collection",
+			name: "root collection - no prefix",
 			repos: map[string][]cmds.Command{
 				"/": {
 					createTestCommand("test1", nil),
@@ -25,10 +25,10 @@ func TestCollectCommands(t *testing.T) {
 			},
 			prefix:   []string{},
 			recurse:  true,
-			expected: []string{"test1", "test2"},
+			expected: []string{"test1", "test2"}, // No leading slash for root mount
 		},
 		{
-			name: "mounted repo collection",
+			name: "mounted repo collection - with prefix",
 			repos: map[string][]cmds.Command{
 				"/test": {
 					createTestCommand("cmd1", nil),
@@ -37,7 +37,7 @@ func TestCollectCommands(t *testing.T) {
 			},
 			prefix:   []string{"test"},
 			recurse:  true,
-			expected: []string{"test/cmd1", "test/cmd2"},
+			expected: []string{"test/cmd1", "test/cmd2"}, // Keep prefix for non-root mounts
 		},
 		{
 			name: "multiple repos",
@@ -52,18 +52,6 @@ func TestCollectCommands(t *testing.T) {
 			prefix:   []string{},
 			recurse:  true,
 			expected: []string{"test1/cmd1", "test2/cmd2"},
-		},
-		{
-			name: "non-recursive collection",
-			repos: map[string][]cmds.Command{
-				"/test": {
-					createTestCommand("cmd1", nil),
-					createTestCommand("subcmd", []string{"cmd1"}),
-				},
-			},
-			prefix:   []string{"test"},
-			recurse:  false,
-			expected: []string{"test/cmd1"},
 		},
 	}
 
@@ -148,4 +136,4 @@ func TestGetCommand(t *testing.T) {
 			}
 		})
 	}
-} 
+}

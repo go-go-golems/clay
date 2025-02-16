@@ -23,8 +23,8 @@ type MockRepository struct {
 
 func NewMockRepository(commands []cmds.Command) *MockRepository {
 	return &MockRepository{
-		commands:   commands,
-		addCalls:   make([][]cmds.Command, 0),
+		commands:    commands,
+		addCalls:    make([][]cmds.Command, 0),
 		removeCalls: make([][]string, 0),
 	}
 }
@@ -67,4 +67,4 @@ func (m *MockRepository) GetRenderNode(prefix []string) (*RenderNode, bool) {
 
 func (m *MockRepository) ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error) {
 	return m.tools, "", m.toolsError
-} 
+}

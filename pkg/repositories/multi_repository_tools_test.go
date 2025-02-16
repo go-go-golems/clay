@@ -20,7 +20,7 @@ func TestListTools(t *testing.T) {
 		wantErr       bool
 	}{
 		{
-			name: "single repo tools",
+			name: "root mounted tools - no prefix",
 			repos: map[string]struct {
 				tools []mcp.Tool
 				err   error
@@ -32,11 +32,11 @@ func TestListTools(t *testing.T) {
 					},
 				},
 			},
-			expectedTools: []string{"tool1", "tool2"},
+			expectedTools: []string{"tool1", "tool2"}, // No leading slash for root mount
 			wantErr:       false,
 		},
 		{
-			name: "mounted repo tools",
+			name: "mounted repo tools - with prefix",
 			repos: map[string]struct {
 				tools []mcp.Tool
 				err   error
@@ -47,7 +47,7 @@ func TestListTools(t *testing.T) {
 					},
 				},
 			},
-			expectedTools: []string{"/test/tool1"},
+			expectedTools: []string{"/test/tool1"}, // Keep prefix for non-root mounts
 			wantErr:       false,
 		},
 		{

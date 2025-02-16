@@ -1,18 +1,18 @@
 package repositories
 
 import (
-	"testing"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestLoadCommands(t *testing.T) {
 	tests := []struct {
-		name     string
-		repos    map[string]struct {
+		name  string
+		repos map[string]struct {
 			commands []cmds.Command
-			err     error
+			err      error
 		}
 		wantErr bool
 	}{
@@ -20,7 +20,7 @@ func TestLoadCommands(t *testing.T) {
 			name: "single repo success",
 			repos: map[string]struct {
 				commands []cmds.Command
-				err     error
+				err      error
 			}{
 				"/": {
 					commands: []cmds.Command{
@@ -35,7 +35,7 @@ func TestLoadCommands(t *testing.T) {
 			name: "multiple repos success",
 			repos: map[string]struct {
 				commands []cmds.Command
-				err     error
+				err      error
 			}{
 				"/test1": {
 					commands: []cmds.Command{
@@ -56,11 +56,11 @@ func TestLoadCommands(t *testing.T) {
 			name: "repo with error",
 			repos: map[string]struct {
 				commands []cmds.Command
-				err     error
+				err      error
 			}{
 				"/": {
 					commands: nil,
-					err:     assert.AnError,
+					err:      assert.AnError,
 				},
 			},
 			wantErr: true,
@@ -84,7 +84,7 @@ func TestLoadCommands(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				
+
 				// Verify each mock repository was called with the help system
 				for _, mounted := range mr.repositories {
 					mockRepo := mounted.Repository.(*MockRepository)
@@ -93,4 +93,4 @@ func TestLoadCommands(t *testing.T) {
 			}
 		})
 	}
-} 
+}

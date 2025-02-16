@@ -2,13 +2,14 @@ package repositories
 
 import (
 	"context"
+	"path"
+	"strings"
+
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"path"
-	"strings"
 )
 
 type MountedRepository struct {
@@ -77,10 +78,12 @@ func (m *MultiRepository) CollectCommands(prefix []string, recurse bool) []cmds.
 	if len(prefix) == 0 || (len(prefix) == 1 && prefix[0] == "/") {
 		for _, repo := range m.repositories {
 			commands := repo.Repository.CollectCommands([]string{}, recurse)
-			// Prepend mount path to each command
+			// Prepend mount path to each command's parents, unless it's root mounted
 			for _, cmd := range commands {
 				desc := cmd.Description()
-				desc.Parents = append(strings.Split(repo.Path, "/")[1:], desc.Parents...)
+				if repo.Path != "/" {
+					desc.Parents = append(strings.Split(repo.Path, "/")[1:], desc.Parents...)
+				}
 			}
 			allCommands = append(allCommands, commands...)
 		}
@@ -102,10 +105,12 @@ func (m *MultiRepository) CollectCommands(prefix []string, recurse bool) []cmds.
 				// Remove mount path from prefix
 				subPrefix := prefix[len(mountComponents):]
 				commands := repo.Repository.CollectCommands(subPrefix, recurse)
-				// Prepend mount path to each command
+				// Prepend mount path to each command's parents, unless it's root mounted
 				for _, cmd := range commands {
 					desc := cmd.Description()
-					desc.Parents = append(mountComponents, desc.Parents...)
+					if repo.Path != "/" {
+						desc.Parents = append(strings.Split(repo.Path, "/")[1:], desc.Parents...)
+					}
 				}
 				allCommands = append(allCommands, commands...)
 			}
@@ -220,15 +225,16 @@ func (m *MultiRepository) ListTools(ctx context.Context, cursor string) ([]mcp.T
 			return nil, "", errors.Wrapf(err, "failed to list tools for repository mounted at %s", repo.Path)
 		}
 
-		// Prepend mount path to each tool's name
+		// Prepend mount path to each tool's name, unless it's root mounted
 		for i := range tools {
-			tools[i].Name = path.Join(repo.Path, tools[i].Name)
+			if repo.Path != "/" {
+				tools[i].Name = path.Join(repo.Path, tools[i].Name)
+			}
 		}
 		allTools = append(allTools, tools...)
 	}
 
-	// For now, return all tools without pagination
 	return allTools, "", nil
 }
 
-var _ RepositoryInterface = (*MultiRepository)(nil) 
+var _ RepositoryInterface = (*MultiRepository)(nil)

@@ -32,4 +32,4 @@ type RepositoryInterface interface {
 
 	// ListTools returns all commands as tools for MCP compatibility
 	ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error)
-} 
+}

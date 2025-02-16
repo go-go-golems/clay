@@ -8,10 +8,10 @@ import (
 
 func TestFindNode(t *testing.T) {
 	tests := []struct {
-		name        string
-		setupNodes  map[string]*TrieNode
-		findPrefix  []string
-		shouldFind  bool
+		name       string
+		setupNodes map[string]*TrieNode
+		findPrefix []string
+		shouldFind bool
 	}{
 		{
 			name: "root node",
@@ -61,17 +61,17 @@ func TestFindNode(t *testing.T) {
 
 func TestGetRenderNode(t *testing.T) {
 	tests := []struct {
-		name        string
-		setupNodes  map[string]*RenderNode
-		findPrefix  []string
-		shouldFind  bool
+		name         string
+		setupNodes   map[string]*RenderNode
+		findPrefix   []string
+		shouldFind   bool
 		expectedName string
 	}{
 		{
 			name: "root render node",
 			setupNodes: map[string]*RenderNode{
 				"/": {
-					Name: "root",
+					Name:     "root",
 					Children: []*RenderNode{},
 				},
 			},
@@ -83,7 +83,7 @@ func TestGetRenderNode(t *testing.T) {
 			name: "mounted render node",
 			setupNodes: map[string]*RenderNode{
 				"/test": {
-					Name: "test",
+					Name:     "test",
 					Children: []*RenderNode{},
 				},
 			},
@@ -95,7 +95,7 @@ func TestGetRenderNode(t *testing.T) {
 			name: "nonexistent render node",
 			setupNodes: map[string]*RenderNode{
 				"/": {
-					Name: "root",
+					Name:     "root",
 					Children: []*RenderNode{},
 				},
 			},
@@ -123,4 +123,4 @@ func TestGetRenderNode(t *testing.T) {
 			}
 		})
 	}
-} 
+}
