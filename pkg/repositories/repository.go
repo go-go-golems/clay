@@ -1,16 +1,19 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/go-go-golems/clay/pkg/repositories/mcp"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/go-go-golems/glazed/pkg/help"
+
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -308,4 +311,38 @@ func (r *Repository) GetRenderNode(prefix []string) (*RenderNode, bool) {
 	}
 
 	return ret, true
+}
+
+// ListTools returns all commands in the repository as tools.
+// The tool name is constructed by joining the command's parents with "/".
+func (r *Repository) ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error) {
+	// Collect all commands from the root
+	commands := r.Root.CollectCommands([]string{}, true)
+
+	tools := make([]mcp.Tool, 0, len(commands))
+	for _, cmd := range commands {
+		desc := cmd.Description()
+
+		// Construct tool name by joining parents and command name
+		nameParts := append([]string{}, desc.Parents...)
+		nameParts = append(nameParts, desc.Name)
+		toolName := strings.Join(nameParts, "/")
+
+		// Create tool from command
+		tool := mcp.Tool{
+			Name:        toolName,
+			Description: desc.Short,
+			// Note: we're not setting InputSchema yet as it would require
+			// converting the command's parameters to JSON schema
+		}
+
+		tools = append(tools, tool)
+	}
+
+	// For now, return all tools without pagination
+	return tools, "", nil
+}
+
+func (r *Repository) CallTool(ctx context.Context, name string, arguments map[string]interface{}) (*mcp.ToolResult, error) {
+	return nil, nil
 }
