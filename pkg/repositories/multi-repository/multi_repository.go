@@ -1,11 +1,13 @@
-package repositories
+package multi_repository
 
 import (
 	"context"
 	"path"
 	"strings"
 
+	"github.com/go-go-golems/clay/pkg/repositories"
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/pkg/errors"
@@ -14,7 +16,7 @@ import (
 
 type MountedRepository struct {
 	Path       string
-	Repository RepositoryInterface
+	Repository repositories.RepositoryInterface
 }
 
 type MultiRepository struct {
@@ -27,7 +29,7 @@ func NewMultiRepository() *MultiRepository {
 	}
 }
 
-func (m *MultiRepository) Mount(mountPath string, repo RepositoryInterface) {
+func (m *MultiRepository) Mount(mountPath string, repo repositories.RepositoryInterface) {
 	// Ensure the path starts with a slash and doesn't end with one
 	mountPath = path.Clean("/" + mountPath)
 	m.repositories = append(m.repositories, MountedRepository{
@@ -141,10 +143,10 @@ func (m *MultiRepository) GetCommand(name string) (cmds.Command, bool) {
 	return nil, false
 }
 
-func (m *MultiRepository) FindNode(prefix []string) *TrieNode {
+func (m *MultiRepository) FindNode(prefix []string) *trie.TrieNode {
 	if len(prefix) == 0 {
 		// Create a root node that contains all mounted repositories
-		root := NewTrieNode([]cmds.Command{}, nil)
+		root := trie.NewTrieNode([]cmds.Command{}, nil)
 		for _, repo := range m.repositories {
 			mountComponents := strings.Split(repo.Path, "/")[1:] // Skip empty first component
 			if len(mountComponents) > 0 {
@@ -177,12 +179,12 @@ func (m *MultiRepository) FindNode(prefix []string) *TrieNode {
 	return nil
 }
 
-func (m *MultiRepository) GetRenderNode(prefix []string) (*RenderNode, bool) {
+func (m *MultiRepository) GetRenderNode(prefix []string) (*trie.RenderNode, bool) {
 	if len(prefix) == 0 {
 		// Create a root render node that contains all mounted repositories
-		root := &RenderNode{
+		root := &trie.RenderNode{
 			Name:     "/",
-			Children: make([]*RenderNode, 0),
+			Children: make([]*trie.RenderNode, 0),
 		}
 		for _, repo := range m.repositories {
 			mountComponents := strings.Split(repo.Path, "/")[1:] // Skip empty first component
@@ -237,4 +239,4 @@ func (m *MultiRepository) ListTools(ctx context.Context, cursor string) ([]mcp.T
 	return allTools, "", nil
 }
 
-var _ RepositoryInterface = (*MultiRepository)(nil)
+var _ repositories.RepositoryInterface = (*MultiRepository)(nil)

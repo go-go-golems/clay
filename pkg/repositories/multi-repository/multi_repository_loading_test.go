@@ -1,10 +1,11 @@
-package repositories
+package multi_repository
 
 import (
+	"testing"
+
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestLoadCommands(t *testing.T) {

@@ -1,38 +1,39 @@
-package repositories
+package multi_repository
 
 import (
 	"testing"
 
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFindNode(t *testing.T) {
 	tests := []struct {
 		name       string
-		setupNodes map[string]*TrieNode
+		setupNodes map[string]*trie.TrieNode
 		findPrefix []string
 		shouldFind bool
 	}{
 		{
 			name: "root node",
-			setupNodes: map[string]*TrieNode{
-				"/": NewTrieNode(nil, nil),
+			setupNodes: map[string]*trie.TrieNode{
+				"/": trie.NewTrieNode(nil, nil),
 			},
 			findPrefix: []string{},
 			shouldFind: true,
 		},
 		{
 			name: "mounted node",
-			setupNodes: map[string]*TrieNode{
-				"/test": NewTrieNode(nil, nil),
+			setupNodes: map[string]*trie.TrieNode{
+				"/test": trie.NewTrieNode(nil, nil),
 			},
 			findPrefix: []string{"test"},
 			shouldFind: true,
 		},
 		{
 			name: "nonexistent node",
-			setupNodes: map[string]*TrieNode{
-				"/": NewTrieNode(nil, nil),
+			setupNodes: map[string]*trie.TrieNode{
+				"/": trie.NewTrieNode(nil, nil),
 			},
 			findPrefix: []string{"nonexistent"},
 			shouldFind: false,
@@ -62,17 +63,17 @@ func TestFindNode(t *testing.T) {
 func TestGetRenderNode(t *testing.T) {
 	tests := []struct {
 		name         string
-		setupNodes   map[string]*RenderNode
+		setupNodes   map[string]*trie.RenderNode
 		findPrefix   []string
 		shouldFind   bool
 		expectedName string
 	}{
 		{
 			name: "root render node",
-			setupNodes: map[string]*RenderNode{
+			setupNodes: map[string]*trie.RenderNode{
 				"/": {
 					Name:     "root",
-					Children: []*RenderNode{},
+					Children: []*trie.RenderNode{},
 				},
 			},
 			findPrefix:   []string{},
@@ -81,10 +82,10 @@ func TestGetRenderNode(t *testing.T) {
 		},
 		{
 			name: "mounted render node",
-			setupNodes: map[string]*RenderNode{
+			setupNodes: map[string]*trie.RenderNode{
 				"/test": {
 					Name:     "test",
-					Children: []*RenderNode{},
+					Children: []*trie.RenderNode{},
 				},
 			},
 			findPrefix:   []string{"test"},
@@ -93,10 +94,10 @@ func TestGetRenderNode(t *testing.T) {
 		},
 		{
 			name: "nonexistent render node",
-			setupNodes: map[string]*RenderNode{
+			setupNodes: map[string]*trie.RenderNode{
 				"/": {
 					Name:     "root",
-					Children: []*RenderNode{},
+					Children: []*trie.RenderNode{},
 				},
 			},
 			findPrefix: []string{"nonexistent"},

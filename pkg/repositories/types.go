@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"context"
+
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 )
@@ -25,10 +27,10 @@ type RepositoryInterface interface {
 	GetCommand(name string) (cmds.Command, bool)
 
 	// FindNode returns the TrieNode at the given prefix
-	FindNode(prefix []string) *TrieNode
+	FindNode(prefix []string) *trie.TrieNode
 
 	// GetRenderNode returns a RenderNode for visualization purposes
-	GetRenderNode(prefix []string) (*RenderNode, bool)
+	GetRenderNode(prefix []string) (*trie.RenderNode, bool)
 
 	// ListTools returns all commands as tools for MCP compatibility
 	ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error)

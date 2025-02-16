@@ -1,8 +1,9 @@
-package repositories
+package multi_repository
 
 import (
 	"context"
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 )
@@ -14,8 +15,8 @@ type MockRepository struct {
 	loadOptions  []cmds.CommandDescriptionOption
 	addCalls     [][]cmds.Command
 	removeCalls  [][]string
-	findNodeRet  *TrieNode
-	renderNode   *RenderNode
+	findNodeRet  *trie.TrieNode
+	renderNode   *trie.RenderNode
 	renderNodeOk bool
 	tools        []mcp.Tool
 	toolsError   error
@@ -57,11 +58,11 @@ func (m *MockRepository) GetCommand(name string) (cmds.Command, bool) {
 	return nil, false
 }
 
-func (m *MockRepository) FindNode(prefix []string) *TrieNode {
+func (m *MockRepository) FindNode(prefix []string) *trie.TrieNode {
 	return m.findNodeRet
 }
 
-func (m *MockRepository) GetRenderNode(prefix []string) (*RenderNode, bool) {
+func (m *MockRepository) GetRenderNode(prefix []string) (*trie.RenderNode, bool) {
 	return m.renderNode, m.renderNodeOk
 }
 
