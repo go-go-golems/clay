@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -323,17 +324,20 @@ func (r *Repository) ListTools(ctx context.Context, cursor string) ([]mcp.Tool, 
 	for _, cmd := range commands {
 		desc := cmd.Description()
 
-		// Construct tool name by joining parents and command name
-		nameParts := append([]string{}, desc.Parents...)
-		nameParts = append(nameParts, desc.Name)
-		toolName := strings.Join(nameParts, "/")
+		schema, err := desc.ToJsonSchema()
+		if err != nil {
+			return nil, "", err
+		}
 
+		rawJsonSchema, err := json.Marshal(schema)
+		if err != nil {
+			return nil, "", err
+		}
 		// Create tool from command
 		tool := mcp.Tool{
-			Name:        toolName,
+			Name:        desc.FullPath(),
 			Description: desc.Short,
-			// Note: we're not setting InputSchema yet as it would require
-			// converting the command's parameters to JSON schema
+			InputSchema: rawJsonSchema,
 		}
 
 		tools = append(tools, tool)
@@ -341,8 +345,4 @@ func (r *Repository) ListTools(ctx context.Context, cursor string) ([]mcp.Tool, 
 
 	// For now, return all tools without pagination
 	return tools, "", nil
-}
-
-func (r *Repository) CallTool(ctx context.Context, name string, arguments map[string]interface{}) (*mcp.ToolResult, error) {
-	return nil, nil
 }
