@@ -116,7 +116,10 @@ func (r *Repository) Watch(
 
 	err := w.Run(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "could not run watcher for repository: %s", strings.Join(paths, ","))
+		if !errors.Is(err, context.Canceled) {
+			return errors.Wrapf(err, "could not run watcher for repository: %s", strings.Join(paths, ","))
+		}
+		return err
 	}
 	return nil
 }
