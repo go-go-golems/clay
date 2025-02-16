@@ -12,6 +12,8 @@ Commands:
 - LoadCommands
 - Watch
 - CollectCommands
+- NewMultiRepository
+- Mount
 Flags:
 - none
 IsTopLevel: true
@@ -26,13 +28,110 @@ The repositories package (`github.com/go-go-golems/clay/pkg/repositories`) provi
 
 ## Overview
 
-The repository system is built around a trie data structure that organizes commands by their path components. It supports:
+The repository system is built around a common interface that allows different repository implementations, including:
+- Basic repository with trie-based storage
+- Multi-repository that can mount other repositories at specific paths
+- Custom repository implementations for specialized needs
 
+The system supports:
 - Loading commands from directories and files
 - Watching directories for changes
 - Dynamic command updates
 - Command aliasing
 - Hierarchical organization
+- Mounting repositories at specific paths
+
+## Repository Interface
+
+The repository system is built around the `RepositoryInterface` which defines the core functionality that all repository implementations must provide:
+
+```go
+type RepositoryInterface interface {
+    // LoadCommands initializes the repository by loading all commands
+    LoadCommands(helpSystem *help.HelpSystem, options ...cmds.CommandDescriptionOption) error
+
+    // Add adds one or more commands to the repository
+    Add(commands ...cmds.Command)
+
+    // Remove removes commands with the given prefixes from the repository
+    Remove(prefixes ...[]string)
+
+    // CollectCommands returns all commands under a given prefix
+    CollectCommands(prefix []string, recurse bool) []cmds.Command
+
+    // GetCommand returns a single command by its full path name
+    GetCommand(name string) (cmds.Command, bool)
+
+    // FindNode returns the TrieNode at the given prefix
+    FindNode(prefix []string) *trie.TrieNode
+
+    // GetRenderNode returns a RenderNode for visualization purposes
+    GetRenderNode(prefix []string) (*trie.RenderNode, bool)
+
+    // ListTools returns all commands as tools for MCP compatibility
+    ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error)
+}
+```
+
+### Core Operations
+
+The interface provides several key operations:
+
+1. Command Management:
+   - `LoadCommands`: Initialize the repository with commands
+   - `Add`: Add new commands to the repository
+   - `Remove`: Remove commands by their prefix paths
+
+2. Command Retrieval:
+   - `CollectCommands`: Get all commands under a prefix
+   - `GetCommand`: Find a specific command by its full path
+   - `FindNode`: Access the underlying trie structure
+   - `GetRenderNode`: Get a visualization-friendly representation
+
+3. Tool Integration:
+   - `ListTools`: Convert commands to MCP-compatible tools
+
+### Implementing Custom Repositories
+
+You can create custom repository implementations by implementing the `RepositoryInterface`. Common use cases include:
+
+```go
+// Example custom repository
+type CustomRepository struct {
+    // Your custom fields
+}
+
+// Implement interface methods
+func (c *CustomRepository) LoadCommands(helpSystem *help.HelpSystem, 
+    options ...cmds.CommandDescriptionOption) error {
+    // Your implementation
+    return nil
+}
+
+func (c *CustomRepository) Add(commands ...cmds.Command) {
+    // Your implementation
+}
+
+// ... implement other methods ...
+```
+
+### Available Implementations
+
+The package provides two main implementations:
+
+1. `Repository`: The standard implementation using a trie data structure
+   ```go
+   repo := repositories.NewRepository(
+       repositories.WithDirectories(...),
+       repositories.WithFiles(...),
+   )
+   ```
+
+2. `MultiRepository`: An implementation that can mount other repositories
+   ```go
+   mr := repositories.NewMultiRepository()
+   mr.Mount("/path", someRepository)
+   ```
 
 ## Basic Usage
 
@@ -90,19 +189,72 @@ repo := repositories.NewRepository(
 )
 ```
 
+## Multi-Repository Support
+
+The multi-repository allows mounting multiple repositories under different paths, creating a unified command hierarchy:
+
+```go
+import (
+    "github.com/go-go-golems/clay/pkg/repositories"
+)
+
+// Create individual repositories
+baseRepo := repositories.NewRepository(...)
+toolsRepo := repositories.NewRepository(...)
+pluginsRepo := repositories.NewRepository(...)
+
+// Create multi-repository
+mr := repositories.NewMultiRepository()
+
+// Mount repositories at different paths
+mr.Mount("/", baseRepo)           // Root mount
+mr.Mount("/tools", toolsRepo)     // Tools under /tools
+mr.Mount("/plugins", pluginsRepo) // Plugins under /plugins
+
+// Load commands from all repositories
+err := mr.LoadCommands(helpSystem)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+### Path Handling in Multi-Repositories
+
+Multi-repositories handle paths differently based on mount points:
+
+1. Root-mounted repositories (`/`):
+   - Commands maintain their original paths
+   - No path prefix is added
+   - Example: `my-command` stays as `my-command`
+
+2. Path-mounted repositories:
+   - Mount path is prepended to all commands
+   - Commands are only accessible through their full path
+   - Example: Command `build` in `/tools` becomes `tools/build`
+
+```go
+// Access commands through their full paths
+rootCmd, found := mr.GetCommand("my-command")        // From root repository
+toolCmd, found := mr.GetCommand("tools/build")       // From tools repository
+pluginCmd, found := mr.GetCommand("plugins/my-plugin") // From plugins repository
+
+// Collect commands from specific paths
+toolCommands := mr.CollectCommands([]string{"tools"}, true)  // All commands under /tools
+```
+
 ### Collecting Commands
 
 The repository allows you to collect commands by prefix:
 
 ```go
-// Get all commands
-allCommands := repo.CollectCommands([]string{}, true)
+// Get all commands from all mounted repositories
+allCommands := mr.CollectCommands([]string{}, true)
 
 // Get commands under specific prefix
-subCommands := repo.CollectCommands([]string{"group", "subgroup"}, true)
+subCommands := mr.CollectCommands([]string{"group", "subgroup"}, true)
 
 // Get commands without recursion
-directCommands := repo.CollectCommands([]string{"group"}, false)
+directCommands := mr.CollectCommands([]string{"group"}, false)
 ```
 
 ## File System Watching
@@ -241,6 +393,45 @@ go func() {
     err := repo.Watch(ctx)
     if err != nil {
         log.Printf("Watch error: %v", err)
+    }
+}()
+```
+
+### Multi-Repository with Mixed Sources
+
+```go
+// Create repositories with different sources
+localRepo := repositories.NewRepository(
+    repositories.WithDirectories(repositories.Directory{
+        FS:            os.DirFS("/local/commands"),
+        RootDirectory: ".",
+    }),
+)
+
+pluginRepo := repositories.NewRepository(
+    repositories.WithFiles([]string{
+        "/plugins/plugin1.yaml",
+        "/plugins/plugin2.yaml",
+    }),
+)
+
+// Create and configure multi-repository
+mr := repositories.NewMultiRepository()
+mr.Mount("/", localRepo)
+mr.Mount("/plugins", pluginRepo)
+
+// Watch both repositories
+go func() {
+    err := localRepo.Watch(ctx)
+    if err != nil {
+        log.Printf("Local repo watch error: %v", err)
+    }
+}()
+
+go func() {
+    err := pluginRepo.Watch(ctx)
+    if err != nil {
+        log.Printf("Plugin repo watch error: %v", err)
     }
 }()
 ```
