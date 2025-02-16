@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestEmptyNode(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	commands := node.CollectCommands([]string{}, true)
@@ -37,7 +38,7 @@ func getNames(cmds_ []cmds.Command) []string {
 }
 
 func TestSingleCommandNode(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{MakeTestCommand([]string{}, "test")}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{MakeTestCommand([]string{}, "test")}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	commands := node.CollectCommands([]string{}, true)
@@ -47,7 +48,7 @@ func TestSingleCommandNode(t *testing.T) {
 }
 
 func TestAddSingleCommandNode(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd := MakeTestCommand([]string{}, "test")
@@ -60,7 +61,7 @@ func TestAddSingleCommandNode(t *testing.T) {
 }
 
 func TestAddRemoveSingleCommandNode(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd := MakeTestCommand([]string{}, "test")
@@ -80,7 +81,7 @@ func TestAddRemoveSingleCommandNode(t *testing.T) {
 }
 
 func TestAddTwoCommands(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{}, "test")
@@ -112,7 +113,7 @@ func TestAddTwoCommands(t *testing.T) {
 }
 
 func TestAddThreeCommands(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{}, "test")
@@ -156,7 +157,7 @@ func TestAddThreeCommands(t *testing.T) {
 }
 
 func TestAddThreeCommandsTwoLevelsDeep(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"test"}, "test")
@@ -222,7 +223,7 @@ func TestAddThreeCommandsTwoLevelsDeep(t *testing.T) {
 }
 
 func TestQueryEmptySubbranch(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	commands := node.CollectCommands([]string{"test"}, true)
@@ -245,7 +246,7 @@ func TestQueryEmptySubbranch(t *testing.T) {
 }
 
 func TestAddCommandDeeperLevels(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -282,7 +283,7 @@ func TestAddCommandDeeperLevels(t *testing.T) {
 }
 
 func TestAddCommandMultipleDeeperLevels(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -320,7 +321,7 @@ func TestAddCommandMultipleDeeperLevels(t *testing.T) {
 }
 
 func TestRemoveCommandDeeperLevels(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -345,7 +346,7 @@ func TestRemoveCommandDeeperLevels(t *testing.T) {
 }
 
 func TestRemoveCommandMultipleDeeperLevels(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -392,7 +393,7 @@ func TestRemoveCommandMultipleDeeperLevels(t *testing.T) {
 }
 
 func TestInsertDuplicateCommand(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -406,7 +407,7 @@ func TestInsertDuplicateCommand(t *testing.T) {
 }
 
 func TestRemoveNonexistentCommand(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -427,7 +428,7 @@ func TestRemoveNonexistentCommand(t *testing.T) {
 // if we have a command "a b c" and we insert a command "a b c d", we can't just remove the existing command
 // because it may be aliased to "a b c". This mirrors the behaviour on the CLI.
 func TestInsertCommandWithSamePrefix(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a", "b", "c"}, "test")
@@ -451,7 +452,7 @@ func TestInsertCommandWithSamePrefix(t *testing.T) {
 }
 
 func TestCollectCommandsNonRecursiveTwoLevels(t *testing.T) {
-	node := NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
+	node := trie.NewTrieNode([]cmds.Command{}, []*alias.CommandAlias{})
 	require.NotNil(t, node)
 
 	cmd1 := MakeTestCommand([]string{"a"}, "b")

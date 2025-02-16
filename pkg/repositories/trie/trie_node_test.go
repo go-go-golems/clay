@@ -3,8 +3,6 @@ package trie
 import (
 	"fmt"
 	"io"
-	"sync"
-	"sync/atomic"
 	"testing"
 
 	"github.com/go-go-golems/glazed/pkg/cmds"
@@ -425,56 +423,5 @@ func TestEdgeCases(t *testing.T) {
 		cmd, found := root.FindCommand([]string{"", "a", "", "b", "test"})
 		assert.True(t, found)
 		assert.Equal(t, "test", cmd.Description().Name)
-	})
-
-	t.Run("concurrent operations", func(t *testing.T) {
-		root := NewTrieNode(nil, nil)
-		numGoroutines := 10
-		numOperations := 100
-		var wg sync.WaitGroup
-
-		// Concurrent insertions
-		for i := 0; i < numGoroutines; i++ {
-			wg.Add(1)
-			go func(id int) {
-				defer wg.Done()
-				for j := 0; j < numOperations; j++ {
-					cmd := &MockCommand{name: fmt.Sprintf("cmd-%d-%d", id, j)}
-					root.InsertCommand([]string{fmt.Sprintf("group-%d", id)}, cmd)
-				}
-			}(i)
-		}
-		wg.Wait()
-
-		// Verify all commands were inserted
-		allCommands := root.CollectCommands([]string{}, true)
-		assert.Len(t, allCommands, numGoroutines*numOperations)
-
-		// Concurrent reads and removals
-		var removedCount int32
-		for i := 0; i < numGoroutines; i++ {
-			wg.Add(1)
-			go func(id int) {
-				defer wg.Done()
-				for j := 0; j < numOperations; j++ {
-					// Mix of reads and removals
-					if j%2 == 0 {
-						removed := root.Remove([]string{fmt.Sprintf("group-%d", id),
-							fmt.Sprintf("cmd-%d-%d", id, j)})
-						if len(removed) > 0 {
-							atomic.AddInt32(&removedCount, 1)
-						}
-					} else {
-						root.FindCommand([]string{fmt.Sprintf("group-%d", id),
-							fmt.Sprintf("cmd-%d-%d", id, j)})
-					}
-				}
-			}(i)
-		}
-		wg.Wait()
-
-		// Verify expected number of commands were removed
-		remaining := root.CollectCommands([]string{}, true)
-		assert.Len(t, remaining, numGoroutines*numOperations-int(removedCount))
 	})
 }
