@@ -477,3 +477,161 @@ go func() {
 ```
 
 This setup creates a repository that automatically reloads commands when files change, making it ideal for development environments or dynamic command systems.
+
+## Command Repository
+
+The `CommandRepository` provides a lightweight, in-memory implementation of the repository interface that focuses solely on command organization without any file system dependencies. It's ideal for scenarios where you just need to manage and organize commands programmatically.
+
+### Creating a Command Repository
+
+```go
+import "github.com/go-go-golems/clay/pkg/repositories"
+
+// Create a basic command repository
+repo := repositories.NewCommandRepository()
+
+// Create with a name
+repo := repositories.NewCommandRepository(
+    repositories.WithCommandRepositoryName("my-commands"),
+)
+```
+
+### Adding Commands
+
+The CommandRepository provides two ways to add commands:
+
+1. Basic Add - uses the command's existing path:
+```go
+// Commands will be organized based on their Description().Parents
+repo.Add(command1, command2)
+```
+
+2. AddUnderPath - adds commands under a specific path:
+```go
+// Add commands under a custom path
+repo.AddUnderPath([]string{"group", "subgroup"}, command1, command2)
+
+// Commands will be accessible as "group/subgroup/command1" etc.
+```
+
+### Command Organization
+
+Commands are organized in a trie structure just like the full Repository:
+
+```go
+// Add commands at different levels
+repo.Add(rootCommand)  // At root
+repo.AddUnderPath([]string{"tools"}, toolCommand)  // Under "tools"
+repo.AddUnderPath([]string{"tools", "network"}, networkCommand)  // Nested
+
+// Retrieve commands
+allCommands := repo.CollectCommands([]string{}, true)  // All commands
+toolCommands := repo.CollectCommands([]string{"tools"}, true)  // All tool commands
+networkTools := repo.CollectCommands([]string{"tools", "network"}, false)  // Direct network tools
+```
+
+### Key Features
+
+The CommandRepository provides:
+
+1. Pure in-memory storage:
+   - No file system dependencies
+   - No watching functionality
+   - Fast and lightweight
+
+2. Full path-based organization:
+   - Hierarchical command structure
+   - Flexible path-based access
+   - Support for nested command groups
+
+3. Simple API:
+   - Basic Add for default paths
+   - AddUnderPath for custom organization
+   - Standard collection and lookup methods
+
+4. RepositoryInterface compatibility:
+   - Works with MultiRepository
+   - Compatible with all repository-based tools
+   - Supports visualization and rendering
+
+### Common Use Cases
+
+The CommandRepository is particularly useful for:
+
+1. Testing and Development:
+```go
+// Create a test repository
+testRepo := repositories.NewCommandRepository()
+testRepo.Add(mockCommands...)
+```
+
+2. Dynamic Command Generation:
+```go
+// Create commands programmatically
+repo := repositories.NewCommandRepository()
+for _, config := range configs {
+    cmd := createCommandFromConfig(config)
+    repo.AddUnderPath([]string{"generated", config.Type}, cmd)
+}
+```
+
+3. Temporary Command Organization:
+```go
+// Create a temporary command structure
+tempRepo := repositories.NewCommandRepository()
+tempRepo.AddUnderPath([]string{"session", sessionID}, sessionCommands...)
+```
+
+4. Plugin Systems:
+```go
+// Add plugin commands under their own namespace
+pluginRepo := repositories.NewCommandRepository()
+for _, plugin := range plugins {
+    pluginRepo.AddUnderPath([]string{"plugins", plugin.Name}, plugin.Commands...)
+}
+```
+
+### Differences from Full Repository
+
+The main differences from the full Repository implementation are:
+
+1. No File System Integration:
+   - No LoadCommands implementation (returns nil)
+   - No Watch support (no-op implementation)
+   - No file-based command loading
+
+2. Simplified Implementation:
+   - No directory management
+   - No help system integration
+   - No file watching callbacks
+
+3. Focus on Command Management:
+   - Pure in-memory storage
+   - Direct command manipulation
+   - Path-based organization
+
+### Example: Building a Command Menu
+
+Here's an example of using CommandRepository to build a hierarchical command menu:
+
+```go
+// Create the repository
+menuRepo := repositories.NewCommandRepository(
+    repositories.WithCommandRepositoryName("menu"),
+)
+
+// Add commands in categories
+menuRepo.AddUnderPath([]string{"file"}, 
+    newCommand, openCommand, saveCommand)
+menuRepo.AddUnderPath([]string{"edit"},
+    cutCommand, copyCommand, pasteCommand)
+menuRepo.AddUnderPath([]string{"view", "zoom"},
+    zoomInCommand, zoomOutCommand, resetZoomCommand)
+
+// Get commands for a specific menu
+fileCommands := menuRepo.CollectCommands([]string{"file"}, false)
+zoomCommands := menuRepo.CollectCommands([]string{"view", "zoom"}, false)
+
+// Get all commands
+allCommands := menuRepo.CollectCommands([]string{}, true)
+```

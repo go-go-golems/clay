@@ -22,7 +22,6 @@ func BuildCobraCommandWithSqletonMiddlewares(
 		cli.WithCobraShortHelpLayers(layers.DefaultSlug, DbtSlug, SqlConnectionSlug, flags.SqlHelpersSlug),
 		cli.WithCreateCommandSettingsLayer(),
 		cli.WithProfileSettingsLayer(),
-		cli.WithProfileSettingsLayer(),
 	}, options...)
 
 	return cli.BuildCobraCommandFromCommand(cmd, options_...)
@@ -33,12 +32,8 @@ func GetCobraCommandSqletonMiddlewares(
 	cmd *cobra.Command,
 	args []string,
 ) ([]middlewares.Middleware, error) {
-	commandSettings := &cli.CommandSettings{}
-	err := parsedCommandLayers.InitializeStruct(cli.CommandSettingsSlug, commandSettings)
-	if err != nil {
-		return nil, err
-	}
 
+	// Start with cobra-specific middlewares
 	middlewares_ := []middlewares.Middleware{
 		middlewares.ParseFromCobraCommand(cmd,
 			parameters.WithParseStepSource("cobra"),
@@ -48,10 +43,30 @@ func GetCobraCommandSqletonMiddlewares(
 		),
 	}
 
+	// Get the common sqleton middlewares
+	additionalMiddlewares, err := GetSqletonMiddlewares(parsedCommandLayers)
+	if err != nil {
+		return nil, err
+	}
+	middlewares_ = append(middlewares_, additionalMiddlewares...)
+
+	return middlewares_, nil
+}
+
+// GetSqletonMiddlewares returns the common middleware chain used by sqleton commands
+func GetSqletonMiddlewares(
+	parsedCommandLayers *layers.ParsedLayers,
+) ([]middlewares.Middleware, error) {
+	commandSettings := &cli.CommandSettings{}
+	err := parsedCommandLayers.InitializeStruct(cli.CommandSettingsSlug, commandSettings)
+	if err != nil {
+		return nil, err
+	}
+	middlewares_ := []middlewares.Middleware{}
+
 	if commandSettings.LoadParametersFromFile != "" {
 		middlewares_ = append(middlewares_,
 			middlewares.LoadParametersFromFile(commandSettings.LoadParametersFromFile))
-
 	}
 
 	profileSettings := &cli.ProfileSettings{}
