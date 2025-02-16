@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
 	"github.com/go-go-golems/clay/pkg/repositories/trie"
+	"github.com/go-go-golems/clay/pkg/watcher"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 )
@@ -34,4 +35,7 @@ type RepositoryInterface interface {
 
 	// ListTools returns all commands as tools for MCP compatibility
 	ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error)
+
+	// Watch sets up file system watching for the repository
+	Watch(ctx context.Context, options ...watcher.Option) error
 }

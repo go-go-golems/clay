@@ -2,8 +2,11 @@ package multi_repository
 
 import (
 	"context"
+
+	"github.com/go-go-golems/clay/pkg/repositories"
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
 	"github.com/go-go-golems/clay/pkg/repositories/trie"
+	"github.com/go-go-golems/clay/pkg/watcher"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 )
@@ -29,6 +32,8 @@ func NewMockRepository(commands []cmds.Command) *MockRepository {
 		removeCalls: make([][]string, 0),
 	}
 }
+
+var _ repositories.RepositoryInterface = (*MockRepository)(nil)
 
 func (m *MockRepository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.CommandDescriptionOption) error {
 	m.helpSystem = helpSystem
@@ -68,4 +73,8 @@ func (m *MockRepository) GetRenderNode(prefix []string) (*trie.RenderNode, bool)
 
 func (m *MockRepository) ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error) {
 	return m.tools, "", m.toolsError
+}
+
+func (m *MockRepository) Watch(ctx context.Context, options ...watcher.Option) error {
+	return nil
 }

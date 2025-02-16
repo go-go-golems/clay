@@ -70,6 +70,9 @@ type RepositoryInterface interface {
 
     // ListTools returns all commands as tools for MCP compatibility
     ListTools(ctx context.Context, cursor string) ([]mcp.Tool, string, error)
+
+    // Watch sets up file system watching for the repository
+    Watch(ctx context.Context, options ...watcher.Option) error
 }
 ```
 
@@ -90,6 +93,28 @@ The interface provides several key operations:
 
 3. Tool Integration:
    - `ListTools`: Convert commands to MCP-compatible tools
+
+4. File System Watching:
+   - `Watch`: Set up file system watching for dynamic updates
+
+### File System Watching
+
+The repository system supports dynamic updates through file system watching:
+
+```go
+// Set up watching with options
+err := repo.Watch(ctx, 
+    watcher.WithMask("**/*.yaml"),  // Only watch yaml files
+    watcher.WithBreakOnError(false), // Continue on errors
+)
+```
+
+The watcher will:
+- Monitor specified directories and files for changes
+- Automatically reload commands when files are modified
+- Remove commands when files are deleted
+- Support filtering by file patterns
+- Handle errors gracefully
 
 ### Implementing Custom Repositories
 
@@ -113,6 +138,11 @@ func (c *CustomRepository) Add(commands ...cmds.Command) {
 }
 
 // ... implement other methods ...
+
+func (c *CustomRepository) Watch(ctx context.Context, options ...watcher.Option) error {
+    // Implement file system watching if needed
+    return nil
+}
 ```
 
 ### Available Implementations
@@ -167,6 +197,15 @@ err := repo.LoadCommands(helpSystem)
 if err != nil {
     log.Fatal(err)
 }
+
+// Set up watching
+ctx := context.Background()
+go func() {
+    err := repo.Watch(ctx)
+    if err != nil {
+        log.Printf("Watch error: %v", err)
+    }
+}()
 ```
 
 ### Loading Commands from Multiple Sources
@@ -216,6 +255,14 @@ err := mr.LoadCommands(helpSystem)
 if err != nil {
     log.Fatal(err)
 }
+
+// Set up watching for all repositories
+go func() {
+    err := mr.Watch(ctx)
+    if err != nil {
+        log.Printf("Watch error: %v", err)
+    }
+}()
 ```
 
 ### Path Handling in Multi-Repositories
@@ -422,16 +469,9 @@ mr.Mount("/plugins", pluginRepo)
 
 // Watch both repositories
 go func() {
-    err := localRepo.Watch(ctx)
+    err := mr.Watch(ctx)
     if err != nil {
-        log.Printf("Local repo watch error: %v", err)
-    }
-}()
-
-go func() {
-    err := pluginRepo.Watch(ctx)
-    if err != nil {
-        log.Printf("Plugin repo watch error: %v", err)
+        log.Printf("Watch error: %v", err)
     }
 }()
 ```

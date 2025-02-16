@@ -8,10 +8,12 @@ import (
 	"github.com/go-go-golems/clay/pkg/repositories"
 	"github.com/go-go-golems/clay/pkg/repositories/mcp"
 	"github.com/go-go-golems/clay/pkg/repositories/trie"
+	"github.com/go-go-golems/clay/pkg/watcher"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 )
 
 type MountedRepository struct {
@@ -237,6 +239,22 @@ func (m *MultiRepository) ListTools(ctx context.Context, cursor string) ([]mcp.T
 	}
 
 	return allTools, "", nil
+}
+
+func (m *MultiRepository) Watch(ctx context.Context, options ...watcher.Option) error {
+	g, ctx := errgroup.WithContext(ctx)
+
+	for _, repo := range m.repositories {
+		r := repo // Create new variable to avoid closure issues
+		g.Go(func() error {
+			if err := r.Repository.Watch(ctx, options...); err != nil {
+				return errors.Wrapf(err, "failed to watch repository mounted at %s", r.Path)
+			}
+			return nil
+		})
+	}
+
+	return g.Wait()
 }
 
 var _ repositories.RepositoryInterface = (*MultiRepository)(nil)
