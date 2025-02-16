@@ -1,3 +1,25 @@
+---
+Title: Working with Clay Repositories
+Slug: repositories
+Short: Learn how to manage and organize commands in a hierarchical structure using Clay's repository system
+Topics:
+- repositories
+- commands
+- organization
+- file system watching
+Commands:
+- NewRepository
+- LoadCommands
+- Watch
+- CollectCommands
+Flags:
+- none
+IsTopLevel: true
+IsTemplate: false
+ShowPerDefault: true
+SectionType: GeneralTopic
+---
+
 # Repositories
 
 The repositories package (`github.com/go-go-golems/clay/pkg/repositories`) provides a flexible way to manage and organize commands in a hierarchical structure, with support for file system watching and dynamic updates.

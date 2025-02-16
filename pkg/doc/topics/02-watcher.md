@@ -1,3 +1,23 @@
+---
+Title: Working with Clay's File System Watcher
+Slug: watcher
+Short: Learn how to monitor file system changes with Clay's flexible watcher package
+Topics:
+- file system watching
+- event handling
+- file patterns
+- directory monitoring
+Commands:
+- NewWatcher
+- Run
+Flags:
+- none
+IsTopLevel: true
+IsTemplate: false
+ShowPerDefault: true
+SectionType: GeneralTopic
+---
+
 # Watcher
 
 The Watcher package provides a simple and flexible way to watch for file system changes in Go applications. It recursively watches directories and can filter events based on file patterns.
