@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+
 	"github.com/blevesearch/bleve/v2/search/query"
 )
 
@@ -28,6 +30,7 @@ func (f *FilterBuilder) And(others ...*FilterBuilder) *FilterBuilder {
 	for i, other := range others {
 		queries[i+1] = other.query
 	}
+	fmt.Printf("Creating conjunction query with %d queries\n", len(queries))
 	return NewFilterBuilder(
 		query.NewConjunctionQuery(queries),
 		f.opts,
@@ -41,6 +44,7 @@ func (f *FilterBuilder) Or(others ...*FilterBuilder) *FilterBuilder {
 	for i, other := range others {
 		queries[i+1] = other.query
 	}
+	fmt.Printf("Creating disjunction query with %d queries\n", len(queries))
 	return NewFilterBuilder(
 		query.NewDisjunctionQuery(queries),
 		f.opts,

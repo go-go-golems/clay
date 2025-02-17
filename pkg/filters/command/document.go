@@ -19,10 +19,17 @@ type commandDocument struct {
 
 // newCommandDocument creates a new commandDocument from a CommandDescription
 func newCommandDocument(cmd *cmds.CommandDescription) *commandDocument {
+	fullPath := cmd.FullPath()
+	fmt.Printf("Creating document for command %s:\n", cmd.Name)
+	fmt.Printf("  Full path: %s\n", fullPath)
+	fmt.Printf("  Parents: %v\n", cmd.Parents)
+	fmt.Printf("  Type: %s\n", cmd.Type)
+	fmt.Printf("  Tags: %v\n", cmd.Tags)
+
 	return &commandDocument{
 		Name:        cmd.Name,
 		NamePattern: cmd.Name, // For pattern matching
-		FullPath:    cmd.FullPath(),
+		FullPath:    fullPath,
 		Parents:     cmd.Parents,
 		Type:        cmd.Type,
 		Tags:        cmd.Tags,

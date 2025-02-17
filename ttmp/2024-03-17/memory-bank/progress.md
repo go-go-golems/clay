@@ -1,116 +1,69 @@
-# Command Filter Implementation Progress
+# Progress
 
-## What Works
+## Recently Completed
+1. Command Filter Enhancements
+   - ✅ Fixed path-based queries with proper text analysis
+   - ✅ Implemented keyword analyzer for full_path field
+   - ✅ Added path prefix and glob pattern matching
+   - ✅ Enhanced debug logging for query construction
+   - ✅ Verified boolean combinations with path queries
 
-1. **Core Components**
-   - [x] Package structure in `pkg/filters/command`
-   - [x] Command index implementation
-   - [x] Document structure and validation
-   - [x] New builder package with fluent interface
+2. Testing
+   - ✅ Added integration tests for path-based queries
+   - ✅ Verified path prefix matching
+   - ✅ Verified glob pattern matching
+   - ✅ Tested boolean combinations
 
-2. **Builder Implementation**
-   - [x] Main builder interface
-   - [x] Filter builder with combinations
-   - [x] Builder options for customization
-   - [x] Helper functions and utilities
+## In Progress
+1. Query Optimization
+   - 🔄 Evaluating query performance
+   - 🔄 Analyzing search patterns
+   - 🔄 Planning caching strategies
 
-3. **Filter Types**
-   - [x] Type filters (Type, Types)
-   - [x] Tag filters (Tag, Tags, AllTags)
-   - [x] Path filters (Path, PathGlob, PathPrefix)
-   - [x] Name filters (Name, NamePattern)
-   - [x] Metadata filters (Metadata, MetadataMatch)
-
-4. **Boolean Operations**
-   - [x] AND combinations
-   - [x] OR combinations
-   - [x] NOT operations
-   - [x] Complex query building
-
-## What's Left
-
-1. **Testing**
-   - [ ] Unit tests for all components
-   - [ ] Integration tests
-   - [ ] Performance benchmarks
-   - [ ] Migration tests
-
-2. **Documentation**
-   - [ ] Package overview
-   - [ ] API documentation
-   - [ ] Usage examples
-   - [ ] Migration guide
-
-3. **CLI Integration**
-   - [ ] Filter subcommand
-   - [ ] Command flags
-   - [ ] Output formatting
-   - [ ] Error reporting
-
-4. **Migration Support**
-   - [ ] Deprecation notices
-   - [ ] Conversion utilities
-   - [ ] Example migrations
-   - [ ] Backward compatibility
-
-## Current Status
-
-1. **Working Features**
-   ```go
-   // Builder creation
-   builder := command.NewBuilder()
-
-   // Simple queries
-   filter := builder.
-       Type("http").
-       Tag("api").
-       Build()
-
-   // Complex queries
-   filter := builder.Or(
-       builder.Type("http"),
-       builder.Type("grpc"),
-   ).And(
-       builder.AllTags("api", "v2"),
-       builder.PathGlob("service/*/api"),
-   ).Build()
-   ```
-
-2. **Partially Working**
-   - Migration support (in progress)
-   - Documentation (needs completion)
-   - Testing (needs implementation)
-
-3. **Not Started**
-   - CLI interface
-   - Performance optimization
-   - Advanced features
-
-## Known Issues
-
-1. **Implementation Gaps**
-   - Test coverage incomplete
-   - CLI integration missing
-   - Documentation needs expansion
-
-2. **Technical Debt**
-   - Legacy filter types need deprecation
-   - Migration utilities needed
-   - Performance testing required
+2. Documentation
+   - 🔄 Updating API documentation
+   - 🔄 Adding usage examples
+   - 🔄 Documenting best practices
 
 ## Next Steps
+1. Additional Query Features
+   - ⏳ Parent path matching
+   - ⏳ Depth-based filtering
+   - ⏳ Multiple path pattern matching
 
-1. **Short Term**
-   - Implement test suite
-   - Complete documentation
-   - Add migration support
+2. Performance Improvements
+   - ⏳ Query caching
+   - ⏳ Index optimization
+   - ⏳ Batch operations
 
-2. **Medium Term**
-   - Build CLI interface
-   - Add performance tests
-   - Create example code
+3. Edge Cases
+   - ⏳ Empty path handling
+   - ⏳ Special character handling
+   - ⏳ Platform-specific paths
 
-3. **Long Term**
-   - Remove legacy code
-   - Optimize performance
-   - Add advanced features 
+## Known Issues
+1. Query Performance
+   - Wildcard queries may be slow on large datasets
+   - No caching mechanism yet
+   - Need performance benchmarks
+
+2. Path Handling
+   - Platform-specific path separators not fully handled
+   - Special characters in paths need validation
+   - Deep path hierarchies not optimized
+
+## Future Enhancements
+1. Query Features
+   - Advanced path pattern matching
+   - Regular expression support
+   - Custom path analyzers
+
+2. Performance
+   - Query result caching
+   - Optimized wildcard matching
+   - Batch indexing support
+
+3. Usability
+   - More query builder helpers
+   - Better error messages
+   - Query validation 

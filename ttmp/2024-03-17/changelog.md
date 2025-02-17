@@ -92,3 +92,13 @@ Added integration tests for complex query combinations.
 - Added tests for Path-based combinations with glob patterns
 - Added tests for Metadata combinations with multiple fields
 - Verified search results with realistic command sets 
+
+## Command Filter Complex Integration Tests
+
+Added comprehensive integration tests for advanced query combinations.
+
+- Added tests for name pattern combinations with AND/OR logic
+- Added tests for complex nested queries with multiple conditions
+- Added tests for NOT combinations and negation logic
+- Added tests for multi-level combinations with realistic scenarios
+- Verified search results with diverse command sets 

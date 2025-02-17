@@ -117,12 +117,12 @@ Implement a flexible command filter system using Bleve as the search backend, al
         "stage": "prod",
     }).And(builder.Type("http"))
     ```
-  - [ ] Name pattern combinations:
+  - [x] Name pattern combinations:
     ```go
     builder.NamePattern("serve*").And(builder.Type("http"))
     builder.Name("api-server").Or(builder.Name("web-server"))
     ```
-  - [ ] Complex nested combinations:
+  - [x] Complex nested combinations:
     ```go
     builder.Type("http").And(
         builder.Or(
@@ -136,7 +136,7 @@ Implement a flexible command filter system using Bleve as the search backend, al
         }),
     )
     ```
-  - [ ] NOT combinations:
+  - [x] NOT combinations:
     ```go
     builder.Type("http").And(
         builder.Not(builder.Tag("deprecated")),
@@ -148,7 +148,7 @@ Implement a flexible command filter system using Bleve as the search backend, al
         )),
     )
     ```
-  - [ ] Multi-level combinations:
+  - [x] Multi-level combinations:
     ```go
     builder.Or(
         builder.And(

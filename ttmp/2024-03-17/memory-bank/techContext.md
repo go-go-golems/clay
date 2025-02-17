@@ -98,4 +98,115 @@
    - Fast operations
    - No persistence needed
    - Simple implementation
-   - Lower resource usage 
+   - Lower resource usage
+
+## Core Technologies
+
+### Bleve Search Engine
+1. Index Configuration
+   - In-memory index for command filtering
+   - Custom field mappings for specialized text analysis
+   - Keyword analyzer for path fields
+   - Support for boolean query combinations
+
+2. Query Types
+   - Term queries for exact matching
+   - Prefix queries for path prefixes
+   - Wildcard queries for glob patterns
+   - Boolean queries for combinations
+
+3. Text Analysis
+   - Keyword analyzer: No tokenization, exact matching
+   - Default analyzer: Standard tokenization
+   - Custom analyzers available when needed
+
+### Go Libraries
+1. Core Dependencies
+   - `github.com/blevesearch/bleve/v2`: Search engine
+   - `github.com/go-go-golems/glazed`: Command framework
+   - Standard library: `path/filepath`, `strings`
+
+2. Testing Framework
+   - `github.com/stretchr/testify/assert`
+   - `github.com/stretchr/testify/require`
+   - Integration testing support
+
+## Development Setup
+
+### Project Structure
+```
+clay/
+  pkg/
+    filters/
+      command/
+        builder/     # Query builder
+        index.go     # Search index
+        document.go  # Document schema
+        filter.go    # Filter types
+```
+
+### Build Requirements
+- Go 1.21 or later
+- Bleve v2.x
+- Testify for testing
+
+### Development Tools
+1. Testing
+   - `go test` for unit tests
+   - Integration tests for query verification
+   - Debug logging for query inspection
+
+2. Code Organization
+   - Builder pattern for queries
+   - Clear separation of concerns
+   - Type-safe interfaces
+
+## Technical Constraints
+
+### Search Limitations
+1. Query Performance
+   - Wildcard queries can be expensive
+   - No built-in query caching
+   - Full result set loading
+
+2. Path Handling
+   - Platform-specific separators
+   - Special character limitations
+   - Deep hierarchy performance
+
+3. Memory Usage
+   - In-memory index size
+   - Result set memory requirements
+   - Document storage overhead
+
+### Best Practices
+1. Query Construction
+   - Use specific field queries when possible
+   - Combine queries with AND/OR operations
+   - Validate input patterns
+
+2. Index Management
+   - Configure proper analyzers
+   - Use appropriate field mappings
+   - Monitor index size
+
+3. Error Handling
+   - Validate queries before execution
+   - Handle search errors gracefully
+   - Provide meaningful error messages
+
+## Dependencies
+
+### Required Packages
+```go
+import (
+    "github.com/blevesearch/bleve/v2"
+    "github.com/blevesearch/bleve/v2/search/query"
+    "github.com/go-go-golems/glazed/pkg/cmds"
+)
+```
+
+### Optional Tools
+- Debug logging utilities
+- Performance monitoring
+- Query analysis tools 

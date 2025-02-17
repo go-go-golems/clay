@@ -228,3 +228,177 @@ func TestComplexQueries_Metadata(t *testing.T) {
 		})
 	}
 }
+
+func TestComplexQueries_NamePattern(t *testing.T) {
+	// Create test commands
+	commands := []*cmds.CommandDescription{
+		{
+			Name: "serve-api",
+			Type: "http",
+			Tags: []string{"api"},
+		},
+		{
+			Name: "serve-web",
+			Type: "http",
+			Tags: []string{"web"},
+		},
+		{
+			Name: "api-server",
+			Type: "http",
+			Tags: []string{"api"},
+		},
+		{
+			Name: "web-server",
+			Type: "http",
+			Tags: []string{"web"},
+		},
+		{
+			Name: "process-data",
+			Type: "worker",
+			Tags: []string{"background"},
+		},
+	}
+
+	// Create index
+	index, err := NewCommandIndex(commands)
+	require.NoError(t, err)
+	defer index.Close()
+
+	ctx := context.Background()
+	b := builder.New()
+
+	tests := []struct {
+		name          string
+		buildFilter   func(*builder.Builder) *builder.FilterBuilder
+		expectedNames []string
+	}{
+		{
+			name: "name pattern AND type",
+			buildFilter: func(b *builder.Builder) *builder.FilterBuilder {
+				return b.NamePattern("serve*").And(b.Type("http"))
+			},
+			expectedNames: []string{"serve-api", "serve-web"},
+		},
+		{
+			name: "name OR name",
+			buildFilter: func(b *builder.Builder) *builder.FilterBuilder {
+				return b.Name("api-server").Or(b.Name("web-server"))
+			},
+			expectedNames: []string{"api-server", "web-server"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filter := tt.buildFilter(b)
+			results, err := index.Search(ctx, filter, commands)
+			require.NoError(t, err)
+
+			resultNames := make([]string, len(results))
+			for i, cmd := range results {
+				resultNames[i] = cmd.Name
+			}
+			assert.ElementsMatch(t, tt.expectedNames, resultNames)
+		})
+	}
+}
+
+func TestComplexQueries_NestedCombinations(t *testing.T) {
+	// Create test commands
+	commands := []*cmds.CommandDescription{
+		{
+			Name: "prod-api",
+			Type: "http",
+			Tags: []string{"api", "stable"},
+			Metadata: map[string]interface{}{
+				"version": "2.0.0",
+				"stage":   "prod",
+			},
+		},
+		{
+			Name: "dev-api",
+			Type: "http",
+			Tags: []string{"api", "experimental"},
+			Metadata: map[string]interface{}{
+				"version": "2.1.0",
+				"stage":   "dev",
+			},
+		},
+		{
+			Name: "prod-web",
+			Type: "http",
+			Tags: []string{"web", "stable"},
+			Metadata: map[string]interface{}{
+				"version": "2.0.0",
+				"stage":   "prod",
+			},
+		},
+		{
+			Name: "test-service",
+			Type: "test",
+			Tags: []string{"test", "experimental"},
+			Metadata: map[string]interface{}{
+				"version": "1.0.0",
+				"stage":   "test",
+			},
+		},
+	}
+
+	// Create index
+	index, err := NewCommandIndex(commands)
+	require.NoError(t, err)
+	defer index.Close()
+
+	ctx := context.Background()
+	b := builder.New()
+
+	tests := []struct {
+		name          string
+		buildFilter   func(*builder.Builder) *builder.FilterBuilder
+		expectedNames []string
+	}{
+		{
+			name: "complex nested - type AND (tag OR tag) AND metadata",
+			buildFilter: func(b *builder.Builder) *builder.FilterBuilder {
+				tagFilter := b.Tag("api").Or(b.Tag("web"))
+				return b.Type("http").And(tagFilter).And(
+					b.MetadataMatch(map[string]interface{}{
+						"version": "2.0.0",
+						"stage":   "prod",
+					}),
+				)
+			},
+			expectedNames: []string{"prod-api", "prod-web"},
+		},
+		{
+			name: "NOT combination - type AND NOT tag",
+			buildFilter: func(b *builder.Builder) *builder.FilterBuilder {
+				return b.Type("http").And(b.Tag("experimental").Not())
+			},
+			expectedNames: []string{"prod-api", "prod-web"},
+		},
+		{
+			name: "multi-level combination",
+			buildFilter: func(b *builder.Builder) *builder.FilterBuilder {
+				httpFilter := b.Type("http").And(b.Tag("api")).And(b.Metadata("stage", "prod"))
+				testFilter := b.Type("test").And(b.Tag("experimental")).And(b.Metadata("stage", "test"))
+				return httpFilter.Or(testFilter)
+			},
+			expectedNames: []string{"prod-api", "test-service"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filter := tt.buildFilter(b)
+			results, err := index.Search(ctx, filter, commands)
+			require.NoError(t, err)
+
+			resultNames := make([]string, len(results))
+			for i, cmd := range results {
+				resultNames[i] = cmd.Name
+			}
+			assert.ElementsMatch(t, tt.expectedNames, resultNames)
+		})
+	}
+}

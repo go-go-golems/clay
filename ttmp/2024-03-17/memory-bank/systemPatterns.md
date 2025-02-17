@@ -1,91 +1,139 @@
-# Command Filter System Patterns
+# System Patterns
 
-## Core Architecture
+## Command Filter Architecture
 
-1. **Builder Pattern**
-   ```go
-   // Main builder interface
-   type Builder struct {
-       opts *Options
-   }
-
-   // Filter builder for combinations
-   type FilterBuilder struct {
-       query query.Query
-       opts  *Options
-   }
-
-   // Usage example
-   builder.Type("http").
-       Tag("api").
-       Build()
-   ```
-
-2. **Document Structure**
+### Index Structure
+1. Document Schema
    ```go
    type commandDocument struct {
        Name        string                 `json:"name"`
        NamePattern string                 `json:"name_pattern"`
        FullPath    string                 `json:"full_path"`
-       Parents     []string               `json:"parents"`
+       Parents     []string              `json:"parents"`
        Type        string                 `json:"type"`
-       Tags        []string               `json:"tags"`
+       Tags        []string              `json:"tags"`
        Metadata    map[string]interface{} `json:"metadata"`
    }
    ```
 
-3. **Search Flow**
-   ```mermaid
-   flowchart TD
-       A[Create Builder] --> B[Build Filter]
-       B --> C[Create Search Request]
-       C --> D[Execute Search]
-       D --> E[Process Results]
+2. Field Analysis
+   - `full_path`: Keyword analyzer (no tokenization)
+   - `tags`: Array field for multiple values
+   - `type`: Simple term field
+   - `metadata`: Dynamic field for custom properties
+
+### Query Patterns
+
+1. Path-Based Queries
+   ```go
+   // Prefix matching
+   builder.PathPrefix("service/")
+   
+   // Glob pattern matching
+   builder.PathGlob("*/api/*")
+   
+   // Exact path matching
+   builder.Path("service/api/http-api")
+   ```
+
+2. Boolean Combinations
+   ```go
+   // AND combination
+   builder.PathPrefix("service/").And(builder.Type("http"))
+   
+   // OR combination
+   builder.Types("http", "grpc").Or(builder.Tag("api"))
+   
+   // Complex combinations
+   builder.PathGlob("*/api/*").And(
+       builder.AllTags("stable", "api")
+   )
+   ```
+
+3. Metadata Queries
+   ```go
+   // Single field
+   builder.Metadata("version", "1.0.0")
+   
+   // Multiple fields
+   builder.MetadataMatch(map[string]interface{}{
+       "version": "1.0.0",
+       "stage": "prod",
+   })
+   ```
+
+### Index Configuration
+1. Field Mappings
+   ```go
+   // Create keyword field mapping
+   keywordFieldMapping := bleve.NewTextFieldMapping()
+   keywordFieldMapping.Analyzer = "keyword"
+   
+   // Add to document mapping
+   documentMapping := bleve.NewDocumentMapping()
+   documentMapping.AddFieldMappingsAt("full_path", keywordFieldMapping)
+   ```
+
+2. Search Configuration
+   ```go
+   searchRequest := bleve.NewSearchRequest(query)
+   searchRequest.Size = len(commands) // Get all matches
    ```
 
 ## Design Patterns
 
-1. **Fluent Interface**
-   - Method chaining for query building
-   - Clear and readable query construction
-   - Type-safe operations
-   - Extensible design
+### Builder Pattern
+- Used for constructing complex queries
+- Fluent interface for query composition
+- Type-safe query construction
+- Encapsulates query complexity
 
-2. **Options Pattern**
-   ```go
-   type Options struct {
-       DefaultFieldBoost         float64
-       DefaultConjunctionMinimum float64
-       DefaultDisjunctionMinimum float64
-   }
+### Command Pattern
+- Commands as first-class objects
+- Rich metadata and tagging
+- Hierarchical organization
+- Path-based discovery
 
-   type Option func(*Options)
-   ```
-
-3. **Factory Methods**
-   ```go
-   // Builder factory
-   func New(opts ...Option) *Builder
-
-   // Filter factory
-   func NewFilterBuilder(q query.Query, opts *Options) *FilterBuilder
-
-   // Helper factory
-   func NewFilter(q query.Query) *FilterBuilder
-   ```
+### Search Pattern
+- In-memory Bleve index
+- Custom field analysis
+- Boolean query composition
+- Flexible matching strategies
 
 ## Component Relationships
 
 ```mermaid
-flowchart TD
-    Builder[Builder] --> FilterBuilder[FilterBuilder]
-    FilterBuilder --> Query[Bleve Query]
-    Query --> SearchRequest[Search Request]
-    SearchRequest --> Results[Search Results]
+graph TD
+    B[Builder] --> F[FilterBuilder]
+    F --> Q[Query]
+    Q --> I[Index]
+    I --> R[Results]
     
-    Options[Options] --> Builder
-    Options --> FilterBuilder
+    C[CommandDescription] --> D[Document]
+    D --> I
 ```
+
+## Technical Decisions
+
+1. Text Analysis
+   - Keyword analyzer for paths
+   - Preserve path structure
+   - No tokenization for exact matching
+
+2. Query Construction
+   - Fluent builder interface
+   - Type-safe query composition
+   - Flexible boolean operations
+
+3. Index Management
+   - In-memory storage
+   - Custom field mappings
+   - Efficient search execution
+
+4. Result Handling
+   - Full result set retrieval
+   - Score-based ranking
+   - Command reconstruction
 
 ## Implementation Patterns
 

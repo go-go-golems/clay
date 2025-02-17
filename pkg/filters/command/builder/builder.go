@@ -3,6 +3,7 @@ package builder
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
@@ -96,6 +97,7 @@ func (b *Builder) PathGlob(pattern string) *FilterBuilder {
 	if matches, _ := filepath.Match(pattern, ""); matches {
 		return b.PathPrefix(pattern)
 	}
+	fmt.Printf("Creating wildcard query with pattern: %s on field: full_path\n", pattern)
 	q := bleve.NewWildcardQuery(pattern)
 	q.SetField("full_path")
 	return NewFilterBuilder(q, b.opts)
@@ -103,6 +105,11 @@ func (b *Builder) PathGlob(pattern string) *FilterBuilder {
 
 // PathPrefix creates a filter that matches commands by path prefix
 func (b *Builder) PathPrefix(prefix string) *FilterBuilder {
+	// Ensure prefix ends with a slash if it doesn't already
+	if !strings.HasSuffix(prefix, "/") {
+		prefix = prefix + "/"
+	}
+	fmt.Printf("Creating prefix query with prefix: %s on field: full_path\n", prefix)
 	q := bleve.NewPrefixQuery(prefix)
 	q.SetField("full_path")
 	return NewFilterBuilder(q, b.opts)
