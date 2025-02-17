@@ -40,14 +40,14 @@ func TestBuilder_TypeFilters(t *testing.T) {
 			case "term":
 				termQuery, ok := q.(*query.TermQuery)
 				require.True(t, ok, "expected TermQuery")
-				assert.Equal(t, tt.wantField, termQuery.Field)
+				assert.Equal(t, tt.wantField, termQuery.Field())
 			case "disjunction":
 				disjQuery, ok := q.(*query.DisjunctionQuery)
 				require.True(t, ok, "expected DisjunctionQuery")
 				for _, sq := range disjQuery.Disjuncts {
 					termQuery, ok := sq.(*query.TermQuery)
 					require.True(t, ok, "expected TermQuery in Disjuncts")
-					assert.Equal(t, tt.wantField, termQuery.Field)
+					assert.Equal(t, tt.wantField, termQuery.Field())
 				}
 			}
 		})
@@ -92,14 +92,14 @@ func TestBuilder_TagFilters(t *testing.T) {
 			case "term":
 				termQuery, ok := q.(*query.TermQuery)
 				require.True(t, ok, "expected TermQuery")
-				assert.Equal(t, tt.wantField, termQuery.Field)
+				assert.Equal(t, tt.wantField, termQuery.Field())
 			case "disjunction":
 				disjQuery, ok := q.(*query.DisjunctionQuery)
 				require.True(t, ok, "expected DisjunctionQuery")
 				for _, sq := range disjQuery.Disjuncts {
 					termQuery, ok := sq.(*query.TermQuery)
 					require.True(t, ok, "expected TermQuery in Disjuncts")
-					assert.Equal(t, tt.wantField, termQuery.Field)
+					assert.Equal(t, tt.wantField, termQuery.Field())
 				}
 			case "conjunction":
 				conjQuery, ok := q.(*query.ConjunctionQuery)
@@ -107,7 +107,7 @@ func TestBuilder_TagFilters(t *testing.T) {
 				for _, sq := range conjQuery.Conjuncts {
 					termQuery, ok := sq.(*query.TermQuery)
 					require.True(t, ok, "expected TermQuery in Conjuncts")
-					assert.Equal(t, tt.wantField, termQuery.Field)
+					assert.Equal(t, tt.wantField, termQuery.Field())
 				}
 			}
 		})
@@ -152,15 +152,15 @@ func TestBuilder_PathFilters(t *testing.T) {
 			case "term":
 				termQuery, ok := q.(*query.TermQuery)
 				require.True(t, ok, "expected TermQuery")
-				assert.Equal(t, tt.wantField, termQuery.Field)
+				assert.Equal(t, tt.wantField, termQuery.Field())
 			case "prefix":
 				prefixQuery, ok := q.(*query.PrefixQuery)
 				require.True(t, ok, "expected PrefixQuery")
-				assert.Equal(t, tt.wantField, prefixQuery.Field)
+				assert.Equal(t, tt.wantField, prefixQuery.Field())
 			case "wildcard":
 				wildcardQuery, ok := q.(*query.WildcardQuery)
 				require.True(t, ok, "expected WildcardQuery")
-				assert.Equal(t, tt.wantField, wildcardQuery.Field)
+				assert.Equal(t, tt.wantField, wildcardQuery.Field())
 			}
 		})
 	}
@@ -198,11 +198,11 @@ func TestBuilder_NameFilters(t *testing.T) {
 			case "term":
 				termQuery, ok := q.(*query.TermQuery)
 				require.True(t, ok, "expected TermQuery")
-				assert.Equal(t, tt.wantField, termQuery.Field)
+				assert.Equal(t, tt.wantField, termQuery.Field())
 			case "wildcard":
 				wildcardQuery, ok := q.(*query.WildcardQuery)
 				require.True(t, ok, "expected WildcardQuery")
-				assert.Equal(t, tt.wantField, wildcardQuery.Field)
+				assert.Equal(t, tt.wantField, wildcardQuery.Field())
 			}
 		})
 	}
@@ -243,14 +243,16 @@ func TestBuilder_MetadataFilters(t *testing.T) {
 			case "term":
 				termQuery, ok := q.(*query.TermQuery)
 				require.True(t, ok, "expected TermQuery")
-				assert.Equal(t, tt.wantField, termQuery.Field)
+				assert.Equal(t, tt.wantField, termQuery.Field())
 			case "conjunction":
 				conjQuery, ok := q.(*query.ConjunctionQuery)
 				require.True(t, ok, "expected ConjunctionQuery")
 				for _, sq := range conjQuery.Conjuncts {
 					termQuery, ok := sq.(*query.TermQuery)
 					require.True(t, ok, "expected TermQuery in Conjuncts")
-					assert.Contains(t, termQuery.Field, tt.wantField)
+					field := termQuery.Field()
+					assert.True(t, len(field) > len(tt.wantField), "field should start with metadata.")
+					assert.True(t, field[:len(tt.wantField)] == tt.wantField, "field should start with metadata.")
 				}
 			}
 		})
