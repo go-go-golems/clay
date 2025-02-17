@@ -49,8 +49,8 @@ func (ci *CommandIndex) Close() error {
 }
 
 // Search executes a query and returns matching commands
-func (ci *CommandIndex) Search(ctx context.Context, filter *BleveFilter, commands []*CommandDescription) ([]*CommandDescription, error) {
-    searchRequest := bleve.NewSearchRequest(filter.query)
+func (ci *CommandIndex) Search(ctx context.Context, filter *FilterBuilder, commands []*CommandDescription) ([]*CommandDescription, error) {
+    searchRequest := bleve.NewSearchRequest(filter.Build())
     searchRequest.Size = len(commands) // Get all matches
     
     searchResult, err := ci.index.SearchInContext(ctx, searchRequest)
@@ -88,25 +88,44 @@ type commandDocument struct {
 }
 ```
 
-### 3. Filter Types
+### 3. Query Builder Interface
 
 ```go
-// BleveFilter wraps a Bleve query
-type BleveFilter struct {
-    query bleve.Query
-}
-
 // QueryBuilder provides methods for creating filters
-type QueryBuilder struct{}
-
-// Name-based filters
-func (b *QueryBuilder) ExactName(name string) *BleveFilter {
-    return &BleveFilter{
-        query: bleve.NewTermQuery(name),
-    }
+type QueryBuilder interface {
+    // Type filters
+    Type(type_ string) *FilterBuilder
+    Types(types ...string) *FilterBuilder
+    
+    // Tag filters
+    Tag(tag string) *FilterBuilder
+    Tags(tags ...string) *FilterBuilder
+    AllTags(tags ...string) *FilterBuilder
+    AnyTags(tags ...string) *FilterBuilder
+    
+    // Path filters
+    Path(path string) *FilterBuilder
+    PathGlob(pattern string) *FilterBuilder
+    PathPrefix(prefix string) *FilterBuilder
+    
+    // Name filters
+    Name(name string) *FilterBuilder
+    NamePattern(pattern string) *FilterBuilder
+    
+    // Metadata filters
+    Metadata(key string, value interface{}) *FilterBuilder
+    MetadataMatch(matches map[string]interface{}) *FilterBuilder
 }
 
-// ... other filter methods remain the same ...
+// FilterBuilder provides methods for combining filters
+type FilterBuilder struct {
+    query query.Query
+}
+
+func (f *FilterBuilder) And(others ...*FilterBuilder) *FilterBuilder
+func (f *FilterBuilder) Or(others ...*FilterBuilder) *FilterBuilder
+func (f *FilterBuilder) Not() *FilterBuilder
+func (f *FilterBuilder) Build() query.Query
 ```
 
 ## Usage Examples
@@ -123,13 +142,13 @@ func ExampleBasicUsage(commands []*CommandDescription) {
     defer index.Close()
 
     // Create builder
-    builder := &QueryBuilder{}
+    builder := command.NewBuilder()
 
     // Create filter
-    filter := builder.And(
-        builder.Type("http"),
-        builder.HasTag("api"),
-    )
+    filter := builder.
+        Type("http").
+        Tag("api").
+        Build()
 
     // Search
     ctx := context.Background()
@@ -155,26 +174,32 @@ func ExampleMultipleSearches(commands []*CommandDescription) {
     }
     defer index.Close()
 
-    builder := &QueryBuilder{}
+    builder := command.NewBuilder()
     ctx := context.Background()
 
     // First search: HTTP commands
-    httpFilter := builder.Type("http")
+    httpFilter := builder.Type("http").Build()
     httpCmds, err := index.Search(ctx, httpFilter, commands)
     if err != nil {
         panic(err)
     }
 
-    // Second search: GRPC commands
-    grpcFilter := builder.Type("grpc")
+    // Second search: GRPC commands with tags
+    grpcFilter := builder.
+        Type("grpc").
+        AllTags("api", "stable").
+        Build()
     grpcCmds, err := index.Search(ctx, grpcFilter, commands)
     if err != nil {
         panic(err)
     }
 
-    // Third search: Commands with specific tag
-    tagFilter := builder.HasTag("experimental")
-    taggedCmds, err := index.Search(ctx, tagFilter, commands)
+    // Third search: Commands with specific path and metadata
+    complexFilter := builder.
+        PathGlob("service/*/api").
+        Metadata("version", "2.0.0").
+        Build()
+    complexCmds, err := index.Search(ctx, complexFilter, commands)
     if err != nil {
         panic(err)
     }
@@ -194,23 +219,18 @@ func ExampleComplexFiltering(commands []*CommandDescription) {
     }
     defer index.Close()
 
-    builder := &QueryBuilder{}
+    builder := command.NewBuilder()
     ctx := context.Background()
 
     // Build complex filter
-    filter := builder.And(
-        // Must be HTTP or GRPC
-        builder.Or(
-            builder.Type("http"),
-            builder.Type("grpc"),
-        ),
-        // Must have all these tags
-        builder.HasAllTags("api", "v2", "stable"),
-        // Must be in specific path
-        builder.ParentsGlob("service/*/api"),
-        // Must have specific metadata
-        builder.MetadataField("version", "2.0.0"),
-    )
+    filter := builder.Or(
+        builder.Type("http"),
+        builder.Type("grpc"),
+    ).And(
+        builder.AllTags("api", "v2", "stable"),
+        builder.PathGlob("service/*/api"),
+        builder.Metadata("version", "2.0.0"),
+    ).Build()
 
     // Search
     matches, err := index.Search(ctx, filter, commands)
@@ -224,7 +244,35 @@ func ExampleComplexFiltering(commands []*CommandDescription) {
 }
 ```
 
+### Using Helper Functions
+
+```go
+func ExampleHelperFunctions(commands []*CommandDescription) {
+    builder := command.NewBuilder()
+
+    // Using Must helper for error handling
+    filter := Must(
+        builder.Type("http").
+        And(
+            builder.Tags("api", "stable"),
+            builder.PathPrefix("service"),
+        ),
+        nil,
+    ).Build()
+
+    // Using NewFilter for raw queries
+    customFilter := NewFilter(
+        bleve.NewTermQuery("custom_field"),
+    ).Build()
+}
+```
+
 ## Future Enhancements
+
+1. **Performance**
+   - Query caching
+   - Result caching
+   - Batch indexing
 
 2. **Features**
    - Fuzzy matching
@@ -235,3 +283,4 @@ func ExampleComplexFiltering(commands []*CommandDescription) {
 3. **Advanced**
    - Query string parsing
    - Faceted search
+   - Custom analyzers

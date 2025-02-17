@@ -101,6 +101,32 @@ Memory Bank updates occur when:
 3. When user requests with **update memory bank** (MUST review ALL files)
 4. When context needs clarification
 
+### Documentation Guidelines
+
+1. **Focus on Specifics**
+   - Use concrete, measurable goals and tasks
+   - Avoid subjective qualifiers (easy, intuitive, robust, etc.)
+   - Omit common sense goals (performance, testing, documentation)
+   - State exactly what needs to be done
+
+2. **Core Components**
+   - Describe actual functionality and features
+   - List specific technical requirements
+   - Define clear interfaces and data structures
+   - Specify exact behaviors
+
+3. **Implementation Details**
+   - Include actual code structures
+   - Define specific data flows
+   - List exact dependencies
+   - Specify concrete integration points
+
+4. **Progress Tracking**
+   - List completed features with specifics
+   - Track actual implementation status
+   - Note specific technical challenges
+   - Define next concrete steps
+
 ```mermaid
 flowchart TD
     Start[Update Process]
@@ -108,7 +134,7 @@ flowchart TD
     subgraph Process
         P1[Review ALL Files]
         P2[Document Current State]
-        P3[Clarify Next Steps]
+        P3[Define Next Steps]
         P4[Update .clinerules]
         
         P1 --> P2 --> P3 --> P4
@@ -121,7 +147,10 @@ Note: When triggered by **update memory bank**, I MUST review every memory bank 
 
 ## Project Intelligence (.clinerules)
 
-The .clinerules file is my learning journal for each project. It captures important patterns, preferences, and project intelligence that help me work more effectively. As I work with you and the project, I'll discover and document key insights that aren't obvious from the code alone.
+The .clinerules file is my learning journal for each project. It captures
+important patterns, preferences, and project intelligence that help me work more
+effectively. As I work with you and the project, I'll discover and document key
+insights that aren't obvious from the code alone.
 
 ```mermaid
 flowchart TD
