@@ -7,6 +7,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
+	"github.com/rs/zerolog/log"
 )
 
 // Builder provides methods for creating command filters
@@ -97,7 +98,7 @@ func (b *Builder) PathGlob(pattern string) *FilterBuilder {
 	if matches, _ := filepath.Match(pattern, ""); matches {
 		return b.PathPrefix(pattern)
 	}
-	fmt.Printf("Creating wildcard query with pattern: %s on field: full_path\n", pattern)
+	log.Debug().Str("pattern", pattern).Str("field", "full_path").Msg("Creating wildcard query")
 	q := bleve.NewWildcardQuery(pattern)
 	q.SetField("full_path")
 	return NewFilterBuilder(q, b.opts)
@@ -109,7 +110,7 @@ func (b *Builder) PathPrefix(prefix string) *FilterBuilder {
 	if !strings.HasSuffix(prefix, "/") {
 		prefix = prefix + "/"
 	}
-	fmt.Printf("Creating prefix query with prefix: %s on field: full_path\n", prefix)
+	log.Debug().Str("prefix", prefix).Str("field", "full_path").Msg("Creating prefix query")
 	q := bleve.NewPrefixQuery(prefix)
 	q.SetField("full_path")
 	return NewFilterBuilder(q, b.opts)

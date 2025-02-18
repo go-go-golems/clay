@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-go-golems/glazed/pkg/cmds"
+	"github.com/rs/zerolog/log"
 )
 
 // commandDocument represents the structure used for indexing commands in Bleve
@@ -19,11 +20,14 @@ type commandDocument struct {
 // newCommandDocument creates a new commandDocument from a CommandDescription
 func newCommandDocument(cmd *cmds.CommandDescription) *commandDocument {
 	fullPath := cmd.FullPath()
-	fmt.Printf("Creating document for command %s:\n", cmd.Name)
-	fmt.Printf("  Full path: %s\n", fullPath)
-	fmt.Printf("  Parents: %v\n", cmd.Parents)
-	fmt.Printf("  Type: %s\n", cmd.Type)
-	fmt.Printf("  Tags: %v\n", cmd.Tags)
+
+	log.Debug().
+		Str("name", cmd.Name).
+		Str("fullPath", fullPath).
+		Strs("parents", cmd.Parents).
+		Str("type", cmd.Type).
+		Strs("tags", cmd.Tags).
+		Msg("Creating document for command")
 
 	return &commandDocument{
 		Name:     cmd.Name,

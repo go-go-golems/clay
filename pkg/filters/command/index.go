@@ -2,11 +2,11 @@ package command
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/go-go-golems/clay/pkg/filters/command/builder"
 	"github.com/go-go-golems/glazed/pkg/cmds"
+	"github.com/rs/zerolog/log"
 )
 
 // CommandIndex manages the in-memory Bleve index for command filtering
@@ -22,11 +22,11 @@ func NewCommandIndex(commands []*cmds.CommandDescription) (*CommandIndex, error)
 	// Create field mappings
 	keywordFieldMapping := bleve.NewTextFieldMapping()
 	keywordFieldMapping.Analyzer = "keyword" // Use keyword analyzer to prevent tokenization
-	fmt.Printf("Created keyword field mapping with analyzer: %s\n", keywordFieldMapping.Analyzer)
+	log.Debug().Str("analyzer", keywordFieldMapping.Analyzer).Msg("Created keyword field mapping")
 
 	textFieldMapping := bleve.NewTextFieldMapping()
 	textFieldMapping.Analyzer = "standard"
-	fmt.Printf("Created text field mapping with analyzer: %s\n", textFieldMapping.Analyzer)
+	log.Debug().Str("analyzer", textFieldMapping.Analyzer).Msg("Created text field mapping")
 
 	// Create document mapping
 	documentMapping := bleve.NewDocumentMapping()
@@ -34,30 +34,30 @@ func NewCommandIndex(commands []*cmds.CommandDescription) (*CommandIndex, error)
 	// Add field mappings
 	documentMapping.AddFieldMappingsAt("name", keywordFieldMapping)
 	documentMapping.AddFieldMappingsAt("name", textFieldMapping)
-	fmt.Printf("Added field mapping for name\n")
+	log.Debug().Msg("Added field mapping for name")
 
 	documentMapping.AddFieldMappingsAt("full_path", keywordFieldMapping)
-	fmt.Printf("Added field mapping for full_path\n")
+	log.Debug().Msg("Added field mapping for full_path")
 
 	documentMapping.AddFieldMappingsAt("type", keywordFieldMapping)
-	fmt.Printf("Added field mapping for type\n")
+	log.Debug().Msg("Added field mapping for type")
 
 	documentMapping.AddFieldMappingsAt("tags", keywordFieldMapping)
-	fmt.Printf("Added field mapping for tags\n")
+	log.Debug().Msg("Added field mapping for tags")
 
 	documentMapping.AddFieldMappingsAt("parents", keywordFieldMapping)
-	fmt.Printf("Added field mapping for parents\n")
+	log.Debug().Msg("Added field mapping for parents")
 
 	// Create metadata mapping
 	metadataMapping := bleve.NewDocumentMapping()
 	metadataMapping.Dynamic = true // Allow dynamic fields in metadata
 	metadataMapping.Enabled = true
 	documentMapping.AddSubDocumentMapping("metadata", metadataMapping)
-	fmt.Printf("Added sub-document mapping for metadata\n")
+	log.Debug().Msg("Added sub-document mapping for metadata")
 
 	// Add document mapping to index
 	indexMapping.AddDocumentMapping("_default", documentMapping)
-	fmt.Printf("Added document mapping to index mapping\n")
+	log.Debug().Msg("Added document mapping to index mapping")
 
 	index, err := bleve.NewMemOnly(indexMapping)
 	if err != nil {
@@ -88,10 +88,10 @@ func (ci *CommandIndex) Close() error {
 // Search executes a query and returns matching commands
 func (ci *CommandIndex) Search(ctx context.Context, filter *builder.FilterBuilder, commands []*cmds.CommandDescription) ([]*cmds.CommandDescription, error) {
 	query := filter.Build()
-	fmt.Printf("Executing search with query type: %T\n", query)
+	log.Debug().Type("queryType", query).Msg("Executing search with query")
 
 	// Print the query details
-	fmt.Printf("Query details: %#v\n", query)
+	log.Debug().Interface("query", query).Msg("Query details")
 
 	searchRequest := bleve.NewSearchRequest(query)
 	searchRequest.Size = len(commands) // Get all matches
@@ -101,9 +101,9 @@ func (ci *CommandIndex) Search(ctx context.Context, filter *builder.FilterBuilde
 		return nil, err
 	}
 
-	fmt.Printf("Search returned %d hits\n", len(searchResult.Hits))
+	log.Debug().Int("hitCount", len(searchResult.Hits)).Msg("Search returned hits")
 	for _, hit := range searchResult.Hits {
-		fmt.Printf("Hit: %s (score: %f)\n", hit.ID, hit.Score)
+		log.Debug().Str("id", hit.ID).Float64("score", hit.Score).Msg("Hit found")
 	}
 
 	// Collect matching commands
