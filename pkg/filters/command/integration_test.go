@@ -244,12 +244,12 @@ func TestComplexQueries_NamePattern(t *testing.T) {
 		},
 		{
 			Name: "api-server",
-			Type: "http",
+			Type: "api",
 			Tags: []string{"api"},
 		},
 		{
 			Name: "web-server",
-			Type: "http",
+			Type: "api",
 			Tags: []string{"web"},
 		},
 		{

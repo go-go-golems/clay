@@ -1,102 +1,111 @@
-# Command Filter Product Context
+# Product Context
 
-## Purpose
+## Overview
 
-The command filter system enables efficient searching and filtering of Clay commands based on various criteria. It provides a powerful yet intuitive way to find and organize commands in the Clay ecosystem.
+The command filter system provides a powerful and flexible way to search and filter CommandDescription objects in the Clay project. It enables users to find commands based on various criteria and combine them in complex ways.
 
-## Problems Solved
+## Core Problems Solved
 
-1. **Command Discovery**
-   - Find commands by type, name, or path
-   - Search by tags and metadata
-   - Use pattern matching for flexible search
-   - Combine multiple search criteria
+1. Command Discovery
+   - Finding commands by type
+   - Searching by tags
+   - Pattern matching names
+   - Path-based filtering
 
-2. **Command Organization**
-   - Group commands by type or tags
-   - Filter by command hierarchy
-   - Organize by metadata
-   - Create complex categorizations
+2. Complex Filtering
+   - Boolean combinations
+   - Nested queries
+   - Metadata matching
+   - Pattern matching
 
-3. **Developer Experience**
-   - Intuitive query building
-   - Type-safe operations
-   - Clear error messages
-   - Comprehensive documentation
+3. Performance
+   - Fast search response
+   - Memory efficiency
+   - Resource management
+   - Query optimization
 
 ## User Experience Goals
 
-1. **API Usage**
-   ```go
-   // Simple and intuitive
-   builder.Type("http").Tag("api")
+1. Developer Experience
+   - Intuitive API
+   - Type safety
+   - Clear documentation
+   - Helpful error messages
 
-   // Powerful when needed
-   builder.Or(
-       builder.Type("http"),
-       builder.Type("grpc"),
-   ).And(
-       builder.AllTags("api", "v2"),
-       builder.PathGlob("service/*/api"),
-   )
-   ```
+2. Query Building
+   - Fluent interface
+   - Method chaining
+   - Common patterns
+   - Helper methods
 
-2. **CLI Experience**
-   ```shell
-   # Simple filtering
-   clay filter --type http --tag api
+3. Search Results
+   - Accurate matches
+   - Fast response
+   - Clear results
+   - Useful metadata
 
-   # Complex queries
-   clay filter --type http,grpc --all-tags api,v2 --path "service/*/api"
-   ```
+## Use Cases
 
-3. **Error Handling**
-   ```go
-   // Clear error messages
-   if err := doc.validate(); err != nil {
-       return fmt.Errorf("invalid document: %w", err)
-   }
-
-   // Helper for common cases
-   filter := Must(builder.Type("http"), nil)
-   ```
-
-## Integration Points
-
-1. **Clay Command System**
-   - Seamless integration with CommandDescription
-   - Support for all command attributes
-   - Context-aware operations
-   - Resource cleanup
-
-2. **Developer Tools**
-   - IDE support through clear types
-   - Documentation with examples
-   - Migration utilities
-   - Testing helpers
-
-3. **CLI Tools**
-   - Command-line interface
+1. Command Line Interface
+   - Filtering commands
+   - Finding specific commands
+   - Complex search queries
    - Output formatting
-   - Error reporting
-   - Help documentation
+
+2. API Integration
+   - Command discovery
+   - Dynamic filtering
+   - Search functionality
+   - Result processing
+
+3. Development Tools
+   - Command management
+   - Testing support
+   - Documentation tools
+   - Debug utilities
+
+## Product Requirements
+
+1. Functionality
+   - Comprehensive search
+   - Complex queries
+   - Boolean operations
+   - Metadata support
+
+2. Performance
+   - Fast queries
+   - Memory efficient
+   - Resource aware
+   - Scalable design
+
+3. Usability
+   - Easy to use
+   - Well documented
+   - Error handling
+   - Clear examples
+
+4. Integration
+   - CLI support
+   - API access
+   - Tool integration
+   - Extension points
 
 ## Success Metrics
 
-1. **Developer Satisfaction**
-   - Intuitive API design
-   - Clear documentation
-   - Easy migration path
-   - Helpful error messages
+1. Technical
+   - Query response time
+   - Memory usage
+   - Search accuracy
+   - Code quality
 
-2. **Performance**
-   - Fast search response
-   - Efficient memory usage
-   - Scalable for large sets
-   - Concurrent operation support
+2. User Experience
+   - API usability
+   - Documentation clarity
+   - Error handling
+   - Integration ease
 
-3. **Code Quality**
-   - Clean architecture
-   - Comprehensive tests
-   - Maintainable code
-   - Extensible design 
+3. Development
+   - Maintainability
+   - Test coverage
+   - Code clarity
+   - Extension ease 

@@ -102,3 +102,20 @@ Added comprehensive integration tests for advanced query combinations.
 - Added tests for NOT combinations and negation logic
 - Added tests for multi-level combinations with realistic scenarios
 - Verified search results with diverse command sets 
+
+## Command Filter Name Pattern Fix
+
+Fixed name pattern queries in the command filter builder.
+
+- Fixed NamePattern method to use the correct field name for wildcard queries
+- Improved test coverage for name pattern and exact name matches
+- Verified search results with various name patterns 
+
+## Command Filter Field Mapping Improvements
+
+Enhanced field mappings in the command filter index.
+
+- Added proper field mappings for all command document fields
+- Set up keyword analyzer for exact match fields (name, type, tags, etc.)
+- Added dynamic metadata mapping for flexible metadata fields
+- Improved search accuracy with correct field analyzers 

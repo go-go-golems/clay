@@ -1,5 +1,172 @@
 # System Patterns
 
+## Architecture Overview
+
+The command filter system is built on top of Bleve, providing a flexible and powerful search capability for CommandDescription objects. The system follows these key architectural patterns:
+
+### 1. Core Components
+
+1. Command Index
+   - In-memory Bleve index
+   - Custom field mappings
+   - Document conversion
+   - Search functionality
+
+2. Query Builder
+   - Fluent builder API
+   - Type-safe query construction
+   - Boolean combinations
+   - Helper methods
+
+3. Document Structure
+   - Name and path fields
+   - Type and tags
+   - Metadata support
+   - Field validation
+
+### 2. Design Patterns
+
+1. Builder Pattern
+   - Used for query construction
+   - Fluent interface
+   - Method chaining
+   - Type safety
+
+2. Command Pattern
+   - CommandDescription represents commands
+   - Encapsulates command metadata
+   - Supports hierarchical structure
+   - Extensible design
+
+3. Strategy Pattern
+   - Different query types
+   - Flexible field mappings
+   - Analyzer selection
+   - Search strategies
+
+### 3. Data Flow
+
+1. Indexing
+   ```
+   CommandDescription -> Document Conversion -> Field Mapping -> Bleve Index
+   ```
+
+2. Searching
+   ```
+   Query Builder -> Bleve Query -> Search Request -> Results -> Command List
+   ```
+
+3. Field Analysis
+   ```
+   Field Value -> Analyzer -> Tokens -> Index
+   ```
+
+### 4. Query Patterns
+
+1. Exact Matching
+   - Type matching
+   - Tag matching
+   - Name matching
+   - Path matching
+
+2. Pattern Matching
+   - Name patterns
+   - Path glob patterns
+   - Path prefix matching
+   - Wildcard support
+
+3. Boolean Operations
+   - AND combinations
+   - OR combinations
+   - NOT operations
+   - Nested queries
+
+4. Metadata Queries
+   - Single field matching
+   - Multiple field matching
+   - Dynamic fields
+   - Value comparison
+
+### 5. Field Mappings
+
+1. Text Fields
+   - Standard analyzer
+   - Full-text search
+   - Tokenization
+   - Term vectors
+
+2. Keyword Fields
+   - Keyword analyzer
+   - Exact matching
+   - No tokenization
+   - Case sensitivity
+
+3. Metadata Fields
+   - Dynamic mapping
+   - Flexible types
+   - Nested structure
+   - Custom analysis
+
+### 6. Error Handling
+
+1. Validation
+   - Document validation
+   - Query validation
+   - Field validation
+   - Type checking
+
+2. Error Types
+   - Index errors
+   - Query errors
+   - Validation errors
+   - Runtime errors
+
+3. Recovery
+   - Graceful degradation
+   - Resource cleanup
+   - State recovery
+   - Error reporting
+
+### 7. Performance Patterns
+
+1. Index Optimization
+   - Field-specific analyzers
+   - Selective field storage
+   - Memory management
+   - Batch operations
+
+2. Query Optimization
+   - Query planning
+   - Result caching
+   - Connection pooling
+   - Resource limits
+
+3. Memory Management
+   - In-memory index
+   - Resource cleanup
+   - Memory limits
+   - Garbage collection
+
+### 8. Testing Patterns
+
+1. Unit Tests
+   - Component isolation
+   - Behavior verification
+   - Error cases
+   - Edge cases
+
+2. Integration Tests
+   - Component interaction
+   - End-to-end flows
+   - Real-world scenarios
+   - Performance testing
+
+3. Test Data
+   - Sample commands
+   - Query patterns
+   - Field variations
+   - Error conditions
+
 ## Command Filter Architecture
 
 ### Index Structure

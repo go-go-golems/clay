@@ -29,7 +29,6 @@ func TestCommandDocument_Conversion(t *testing.T) {
 			wantErr: false,
 			validate: func(t *testing.T, doc *commandDocument) {
 				assert.Equal(t, "test-cmd", doc.Name)
-				assert.Equal(t, "test-cmd", doc.NamePattern)
 				assert.Equal(t, "test", doc.Type)
 				assert.Equal(t, []string{"parent1", "parent2"}, doc.Parents)
 				assert.Equal(t, []string{"tag1", "tag2"}, doc.Tags)

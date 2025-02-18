@@ -209,4 +209,148 @@ import (
 ### Optional Tools
 - Debug logging utilities
 - Performance monitoring
-- Query analysis tools 
+- Query analysis tools
+
+# Technical Context
+
+## Core Technologies
+
+1. Bleve Search Engine
+   - Version: v2.x
+   - In-memory index
+   - Custom field mappings
+   - Flexible query types
+   - Analyzer support
+
+2. Go Language
+   - Version: 1.x
+   - Standard library
+   - Context support
+   - Error handling
+   - Testing framework
+
+## Dependencies
+
+1. Required Packages
+   ```go
+   github.com/blevesearch/bleve/v2
+   github.com/go-go-golems/glazed/pkg/cmds
+   ```
+
+2. Development Tools
+   - Go toolchain
+   - Testing utilities
+   - Benchmarking tools
+   - Documentation tools
+
+## Technical Constraints
+
+1. Memory Usage
+   - In-memory index
+   - Resource limits
+   - Garbage collection
+   - Memory management
+
+2. Performance
+   - Query response time
+   - Index update speed
+   - Search accuracy
+   - Resource efficiency
+
+3. Compatibility
+   - Go version support
+   - Bleve version support
+   - Platform compatibility
+   - API stability
+
+## Development Setup
+
+1. Environment
+   - Go 1.x or higher
+   - Git for version control
+   - IDE with Go support
+   - Testing tools
+
+2. Build Process
+   - Standard Go build
+   - Unit tests
+   - Integration tests
+   - Benchmarks
+
+3. Testing
+   - Unit test suite
+   - Integration tests
+   - Performance tests
+   - Coverage reports
+
+## Technical Decisions
+
+1. Search Engine
+   - Using Bleve for flexibility
+   - In-memory index for simplicity
+   - Custom field mappings
+   - Query builder pattern
+
+2. Field Analysis
+   - Keyword analyzer for exact matches
+   - Standard analyzer for text
+   - Dynamic mapping for metadata
+   - Field-specific settings
+
+3. Query Building
+   - Fluent builder API
+   - Type-safe methods
+   - Boolean operations
+   - Helper functions
+
+4. Error Handling
+   - Explicit error types
+   - Context support
+   - Resource cleanup
+   - Validation checks
+
+## Performance Considerations
+
+1. Index Configuration
+   - Field-specific analyzers
+   - Selective field storage
+   - Memory optimization
+   - Batch operations
+
+2. Query Optimization
+   - Query planning
+   - Result caching
+   - Connection pooling
+   - Resource limits
+
+3. Memory Management
+   - Index size limits
+   - Resource cleanup
+   - Memory monitoring
+   - Garbage collection
+
+## Development Guidelines
+
+1. Code Structure
+   - Package organization
+   - Interface design
+   - Error handling
+   - Documentation
+
+2. Testing
+   - Unit test coverage
+   - Integration testing
+   - Performance testing
+   - Documentation testing
+
+3. Documentation
+   - Package documentation
+   - API documentation
+   - Examples
+   - Usage guides
+
+4. Performance
+   - Benchmarking
+   - Profiling
+   - Optimization
+   - Monitoring 

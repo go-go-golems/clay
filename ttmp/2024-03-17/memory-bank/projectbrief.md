@@ -1,49 +1,87 @@
-# Command Filter System Project Brief
+# Project Brief: Command Filter System
 
 ## Overview
-Implement a flexible and efficient command filtering system for Clay using Bleve as the search backend. The system allows searching through CommandDescription objects using various criteria and boolean combinations.
+
+The Command Filter System is a core component of the Clay project that provides powerful and flexible search capabilities for CommandDescription objects. It uses Bleve as the search backend and offers a modern, type-safe API for building complex queries.
 
 ## Core Requirements
 
-1. **Search Capabilities**
-   - Filter commands by type, name, path, and tags
-   - Support exact matches and pattern matching
-   - Enable metadata field filtering
-   - Allow boolean combinations of filters (AND, OR, NOT)
+1. Search Functionality
+   - Type-based filtering
+   - Tag-based filtering
+   - Name pattern matching
+   - Path-based filtering
+   - Metadata matching
+   - Boolean combinations
 
-2. **Performance**
-   - Use in-memory Bleve index for fast searches
-   - Support concurrent searches
-   - Optimize for large command sets
+2. Performance
+   - Fast query execution
+   - Memory efficiency
+   - Resource management
+   - Query optimization
 
-3. **Developer Experience**
-   - Provide a fluent builder interface for query construction
-   - Support method chaining for filter combinations
-   - Enable customization through builder options
-   - Maintain backward compatibility during transition
+3. Developer Experience
+   - Type-safe API
+   - Fluent interface
+   - Clear documentation
+   - Helpful error messages
 
-4. **Integration**
-   - Seamless integration with Clay's command system
-   - Support for CLI interface
-   - Consistent error handling
-   - Context support for cancellation
+## Key Features
+
+1. Query Building
+   - Fluent builder API
+   - Method chaining
+   - Boolean operations
+   - Helper methods
+
+2. Field Mappings
+   - Custom analyzers
+   - Field-specific settings
+   - Dynamic metadata
+   - Proper indexing
+
+3. Search Results
+   - Accurate matches
+   - Fast response
+   - Clear results
+   - Useful metadata
+
+## Project Goals
+
+1. Short Term
+   - Complete core functionality
+   - Add comprehensive tests
+   - Optimize performance
+   - Document usage
+
+2. Medium Term
+   - Add CLI integration
+   - Implement caching
+   - Improve error handling
+   - Add migration guide
+
+3. Long Term
+   - Enhance performance
+   - Add advanced features
+   - Improve scalability
+   - Extend functionality
 
 ## Success Criteria
 
-1. **Functionality**
-   - All filter types work as specified
-   - Boolean combinations function correctly
-   - Search results are accurate and complete
-   - Error handling is robust
+1. Technical
+   - Fast query response
+   - Efficient memory use
+   - High test coverage
+   - Clean code
 
-2. **Usability**
-   - Builder API is intuitive and easy to use
-   - Documentation is clear and comprehensive
-   - Examples cover common use cases
-   - Migration path is smooth
+2. User Experience
+   - Easy to use API
+   - Clear documentation
+   - Good error handling
+   - Simple integration
 
-3. **Quality**
-   - Comprehensive test coverage
-   - Clean and maintainable code
-   - Proper error handling
-   - Well-documented interfaces 
+3. Product
+   - Meets requirements
+   - Solves user needs
+   - Maintainable code
+   - Extensible design 

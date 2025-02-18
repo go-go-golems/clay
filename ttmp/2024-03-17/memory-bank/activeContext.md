@@ -1,41 +1,77 @@
 # Active Context
 
 ## Current Focus
-- Implementing and fixing path-based queries in the command filter system
-- Ensuring proper text analysis for path fields in Bleve index
+We are implementing a flexible command filter system using Bleve as the search backend. The core functionality is complete, and we are now focusing on:
+
+1. Performance Optimization
+   - Testing with large command sets
+   - Optimizing wildcard queries
+   - Implementing caching strategies
+   - Fine-tuning index configuration
+
+2. Migration Support
+   - Creating migration guide
+   - Testing backward compatibility
+   - Documenting breaking changes
+   - Providing migration examples
+
+3. CLI Integration
+   - Adding filter subcommand
+   - Implementing filter flags
+   - Adding output formatting
+   - Improving error reporting
 
 ## Recent Changes
-- Fixed path-based queries in command filter by configuring proper text analysis
-- Added keyword analyzer for full_path field to prevent tokenization
-- Enhanced debug logging for query construction and execution
-- Verified path prefix and glob pattern matching functionality
+
+1. Core Implementation
+   - Implemented flexible command filter system
+   - Created fluent builder API
+   - Added comprehensive field mappings
+   - Fixed name pattern queries
+   - Added proper analyzers for all fields
+
+2. Testing
+   - Added unit tests for all components
+   - Added integration tests for complex queries
+   - Verified field mappings and analyzers
+   - Tested with diverse command sets
 
 ## Active Decisions
-1. Path Field Indexing
-   - Using keyword analyzer for full_path field to preserve path structure
-   - Paths are stored as complete strings (e.g., "service/api/http-api")
-   - No tokenization to maintain path hierarchy
 
-2. Query Construction
-   - PathPrefix queries ensure trailing slash for consistency
-   - PathGlob queries use wildcard patterns for flexible matching
-   - Conjunction queries combine path and type/tag filters
+1. Field Mappings
+   - Using keyword analyzer for exact match fields (name, type, tags)
+   - Using standard analyzer for text fields
+   - Using dynamic mapping for metadata fields
+   - Storing all fields for retrieval
+
+2. Query Building
+   - Using fluent builder API for query construction
+   - Supporting all common query types
+   - Allowing complex boolean combinations
+   - Providing helper methods for common patterns
+
+3. Performance
+   - Using in-memory Bleve index for now
+   - Planning caching mechanism
+   - Considering index optimization options
+   - Evaluating query performance
 
 ## Next Steps
-1. Consider adding more path-based query patterns:
-   - Parent path matching
-   - Depth-based filtering
-   - Multiple path pattern matching
 
-2. Optimization opportunities:
-   - Cache common path queries
-   - Optimize wildcard pattern matching
-   - Add path validation
+1. Short Term
+   - Complete performance testing with large datasets
+   - Create migration guide
+   - Start CLI integration
 
-3. Documentation:
-   - Document path query patterns
-   - Add examples for common use cases
-   - Update API documentation
+2. Medium Term
+   - Implement caching mechanism
+   - Add CLI documentation
+   - Improve error handling
+
+3. Long Term
+   - Add advanced query features
+   - Optimize for large-scale usage
+   - Enhance developer experience
 
 ## Current Considerations
 1. Query Performance

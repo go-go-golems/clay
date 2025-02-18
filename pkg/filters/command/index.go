@@ -19,15 +19,41 @@ func NewCommandIndex(commands []*cmds.CommandDescription) (*CommandIndex, error)
 	// Create memory-only index with custom mapping
 	indexMapping := bleve.NewIndexMapping()
 
-	// Create a keyword field mapping for full_path
+	// Create field mappings
 	keywordFieldMapping := bleve.NewTextFieldMapping()
 	keywordFieldMapping.Analyzer = "keyword" // Use keyword analyzer to prevent tokenization
-	fmt.Printf("Created keyword field mapping for full_path with analyzer: %s\n", keywordFieldMapping.Analyzer)
+	fmt.Printf("Created keyword field mapping with analyzer: %s\n", keywordFieldMapping.Analyzer)
+
+	textFieldMapping := bleve.NewTextFieldMapping()
+	textFieldMapping.Analyzer = "standard"
+	fmt.Printf("Created text field mapping with analyzer: %s\n", textFieldMapping.Analyzer)
 
 	// Create document mapping
 	documentMapping := bleve.NewDocumentMapping()
+
+	// Add field mappings
+	documentMapping.AddFieldMappingsAt("name", keywordFieldMapping)
+	documentMapping.AddFieldMappingsAt("name", textFieldMapping)
+	fmt.Printf("Added field mapping for name\n")
+
 	documentMapping.AddFieldMappingsAt("full_path", keywordFieldMapping)
-	fmt.Printf("Added field mapping for full_path to document mapping\n")
+	fmt.Printf("Added field mapping for full_path\n")
+
+	documentMapping.AddFieldMappingsAt("type", keywordFieldMapping)
+	fmt.Printf("Added field mapping for type\n")
+
+	documentMapping.AddFieldMappingsAt("tags", keywordFieldMapping)
+	fmt.Printf("Added field mapping for tags\n")
+
+	documentMapping.AddFieldMappingsAt("parents", keywordFieldMapping)
+	fmt.Printf("Added field mapping for parents\n")
+
+	// Create metadata mapping
+	metadataMapping := bleve.NewDocumentMapping()
+	metadataMapping.Dynamic = true // Allow dynamic fields in metadata
+	metadataMapping.Enabled = true
+	documentMapping.AddSubDocumentMapping("metadata", metadataMapping)
+	fmt.Printf("Added sub-document mapping for metadata\n")
 
 	// Add document mapping to index
 	indexMapping.AddDocumentMapping("_default", documentMapping)

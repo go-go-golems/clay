@@ -166,36 +166,34 @@ Implement a flexible command filter system using Bleve as the search backend, al
 
 - [ ] Test with large command sets
 - [ ] Test migration scenarios
+  - [ ] Test with existing commands
+  - [ ] Verify backward compatibility
+  - [ ] Handle edge cases
 
-## Documentation
-
-### 1. Package Documentation
-- [x] Add package overview
-- [x] Document types and interfaces
-- [x] Add usage examples
-- [x] Document error handling
-- [ ] Add migration guide
-- [x] Document builder options
-
-### 2. Examples
-- [x] Basic usage examples
-- [x] Complex query examples
-- [x] Common use case examples
-- [x] Error handling examples
-- [ ] Migration examples
-
-## CLI Integration
-
-### 1. Command Line Interface
+### 3. CLI Integration
 - [ ] Add filter subcommand
-- [ ] Add filter flags for each type
+  - [ ] Implement basic filtering
+  - [ ] Add complex query support
+  - [ ] Support all filter types
+- [ ] Add filter flags
+  - [ ] Type filters
+  - [ ] Tag filters
+  - [ ] Path filters
+  - [ ] Name filters
+  - [ ] Metadata filters
 - [ ] Add output formatting
+  - [ ] JSON output
+  - [ ] Table output
+  - [ ] Custom formats
 - [ ] Add error reporting
-- [ ] Update to use new builder API
+  - [ ] User-friendly errors
+  - [ ] Debug information
+  - [ ] Validation feedback
 
-### 2. Usage Examples
+
+## Usage Examples
 ```go
-// Example command usage:
+// CLI usage examples
 clay filter --type http --tag api --parent-glob "service/*/api"
 clay filter --name-pattern "serve*" --has-all-tags stable,v2
 clay filter --metadata version=2.0.0 --type grpc
@@ -229,12 +227,3 @@ clay filter --metadata version=2.0.0 --type grpc
    - [x] Create documentation
    - [x] Add examples
    - [ ] Add migration guide
-
-## Notes
-- Use in-memory Bleve index for simplicity
-- Focus on clean API design
-- Ensure proper error handling
-- Add context support for cancellation
-- Keep memory usage in check
-- Provide smooth migration path
-- Maintain backward compatibility during transition

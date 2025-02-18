@@ -125,7 +125,7 @@ func (b *Builder) Name(name string) *FilterBuilder {
 // NamePattern creates a filter that matches commands by name pattern
 func (b *Builder) NamePattern(pattern string) *FilterBuilder {
 	q := bleve.NewWildcardQuery(pattern)
-	q.SetField("name_pattern")
+	q.SetField("name")
 	return NewFilterBuilder(q, b.opts)
 }
 

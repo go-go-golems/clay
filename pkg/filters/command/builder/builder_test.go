@@ -185,7 +185,7 @@ func TestBuilder_NameFilters(t *testing.T) {
 			name:      "name pattern filter",
 			filter:    b.NamePattern("serve*"),
 			wantType:  "wildcard",
-			wantField: "name_pattern",
+			wantField: "name",
 		},
 	}
 

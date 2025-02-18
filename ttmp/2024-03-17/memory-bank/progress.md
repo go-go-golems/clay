@@ -1,69 +1,67 @@
 # Progress
 
 ## Recently Completed
-1. Command Filter Enhancements
-   - ✅ Fixed path-based queries with proper text analysis
-   - ✅ Implemented keyword analyzer for full_path field
-   - ✅ Added path prefix and glob pattern matching
-   - ✅ Enhanced debug logging for query construction
-   - ✅ Verified boolean combinations with path queries
+
+1. Command Filter Core Implementation
+   - ✅ Implemented flexible command filter system using Bleve
+   - ✅ Created fluent builder API for query construction
+   - ✅ Added comprehensive field mappings with proper analyzers
+   - ✅ Implemented all filter types (type, tag, path, name, metadata)
+   - ✅ Added boolean combinations (AND, OR, NOT)
 
 2. Testing
-   - ✅ Added integration tests for path-based queries
-   - ✅ Verified path prefix matching
-   - ✅ Verified glob pattern matching
-   - ✅ Tested boolean combinations
+   - ✅ Added unit tests for all components
+   - ✅ Added integration tests for complex queries
+   - ✅ Fixed name pattern queries
+   - ✅ Verified field mappings and analyzers
+   - ✅ Tested with diverse command sets
 
 ## In Progress
-1. Query Optimization
+
+1. Performance Optimization
    - 🔄 Evaluating query performance
-   - 🔄 Analyzing search patterns
+   - 🔄 Testing with large command sets
+   - 🔄 Optimizing wildcard queries
    - 🔄 Planning caching strategies
 
-2. Documentation
-   - 🔄 Updating API documentation
-   - 🔄 Adding usage examples
-   - 🔄 Documenting best practices
+2. Migration Support
+   - 🔄 Creating migration guide
+   - 🔄 Testing backward compatibility
+   - 🔄 Documenting breaking changes
 
 ## Next Steps
-1. Additional Query Features
-   - ⏳ Parent path matching
-   - ⏳ Depth-based filtering
-   - ⏳ Multiple path pattern matching
 
-2. Performance Improvements
-   - ⏳ Query caching
-   - ⏳ Index optimization
-   - ⏳ Batch operations
+1. CLI Integration
+   - ⏳ Add filter subcommand
+   - ⏳ Implement filter flags
+   - ⏳ Add output formatting
+   - ⏳ Improve error reporting
 
-3. Edge Cases
-   - ⏳ Empty path handling
-   - ⏳ Special character handling
-   - ⏳ Platform-specific paths
+2. Documentation
+   - ⏳ Add migration guide
+   - ⏳ Add performance guide
+   - ⏳ Add CLI documentation
 
 ## Known Issues
-1. Query Performance
+
+1. Performance
    - Wildcard queries may be slow on large datasets
    - No caching mechanism yet
    - Need performance benchmarks
 
-2. Path Handling
-   - Platform-specific path separators not fully handled
-   - Special characters in paths need validation
-   - Deep path hierarchies not optimized
+2. Migration
+   - No clear migration path from old system
+   - Breaking changes need documentation
+   - Need more migration examples
 
 ## Future Enhancements
-1. Query Features
-   - Advanced path pattern matching
-   - Regular expression support
-   - Custom path analyzers
 
-2. Performance
+1. Performance
    - Query result caching
-   - Optimized wildcard matching
-   - Batch indexing support
+   - Index optimization
+   - Batch operations
 
-3. Usability
+2. Usability
    - More query builder helpers
    - Better error messages
    - Query validation 
