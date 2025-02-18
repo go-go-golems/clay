@@ -9,11 +9,11 @@ We are implementing a flexible command filter system using Bleve as the search b
    - Implementing caching strategies
    - Fine-tuning index configuration
 
-2. Migration Support
-   - Creating migration guide
-   - Testing backward compatibility
-   - Documenting breaking changes
-   - Providing migration examples
+2. Logging and Debugging
+   - Implementing structured logging with zerolog
+   - Adding detailed debug logging for query operations
+   - Improving error reporting and tracing
+   - Enhancing development debugging experience
 
 3. CLI Integration
    - Adding filter subcommand
@@ -23,14 +23,21 @@ We are implementing a flexible command filter system using Bleve as the search b
 
 ## Recent Changes
 
-1. Core Implementation
+1. Logging Enhancement
+   - Replaced fmt.Printf with structured zerolog.Debug() calls
+   - Added detailed logging in command document creation
+   - Improved logging in index creation and search operations
+   - Enhanced path filtering operation logging
+   - Added structured fields for better debugging
+
+2. Core Implementation
    - Implemented flexible command filter system
    - Created fluent builder API
    - Added comprehensive field mappings
    - Fixed name pattern queries
    - Added proper analyzers for all fields
 
-2. Testing
+3. Testing
    - Added unit tests for all components
    - Added integration tests for complex queries
    - Verified field mappings and analyzers
@@ -38,23 +45,23 @@ We are implementing a flexible command filter system using Bleve as the search b
 
 ## Active Decisions
 
-1. Field Mappings
+1. Logging Strategy
+   - Using zerolog for structured logging
+   - Debug level for detailed operation tracing
+   - Structured fields for better filtering
+   - Consistent logging patterns across components
+
+2. Field Mappings
    - Using keyword analyzer for exact match fields (name, type, tags)
    - Using standard analyzer for text fields
    - Using dynamic mapping for metadata fields
    - Storing all fields for retrieval
 
-2. Query Building
+3. Query Building
    - Using fluent builder API for query construction
    - Supporting all common query types
    - Allowing complex boolean combinations
    - Providing helper methods for common patterns
-
-3. Performance
-   - Using in-memory Bleve index for now
-   - Planning caching mechanism
-   - Considering index optimization options
-   - Evaluating query performance
 
 ## Next Steps
 
@@ -74,17 +81,19 @@ We are implementing a flexible command filter system using Bleve as the search b
    - Enhance developer experience
 
 ## Current Considerations
-1. Query Performance
+
+1. Logging and Debugging
+   - Monitor logging performance impact
+   - Consider log level configuration
+   - Evaluate logging verbosity
+   - Plan log aggregation strategy
+
+2. Query Performance
    - Monitor performance of wildcard queries
    - Consider indexing strategies for large command sets
    - Evaluate caching options for frequent queries
 
-2. Path Handling
+3. Path Handling
    - Maintain consistent path format
    - Handle edge cases (empty paths, special characters)
-   - Consider platform-specific path separators
-
-3. Testing Coverage
-   - Add more complex path pattern tests
-   - Test edge cases and error conditions
-   - Benchmark query performance 
+   - Consider platform-specific path separators 

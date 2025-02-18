@@ -7,12 +7,14 @@
    - Bleve v2 (search backend)
    - Clay command system
    - Glazed package
+   - Zerolog (structured logging)
 
 2. **Dependencies**
    ```go
    require (
        "github.com/blevesearch/bleve/v2"
        "github.com/go-go-golems/glazed/pkg/cmds"
+       "github.com/rs/zerolog/log"
    )
    ```
 
@@ -35,6 +37,7 @@
    - `Builder`: Fluent interface for query construction
    - `FilterBuilder`: Filter combination and building
    - `commandDocument`: Document structure for indexing
+   - `zerolog`: Structured logging throughout components
 
 3. **Query Building**
    ```go
@@ -51,16 +54,19 @@
    - In-memory index only
    - No persistence layer
    - Optimize for large command sets
+   - Monitor logging memory impact
 
 2. **Performance**
    - Fast search response times
    - Efficient boolean operations
    - Concurrent search support
+   - Logging overhead consideration
 
 3. **Compatibility**
    - Go 1.23 compatibility
    - Clay command system integration
    - Backward compatibility during migration
+   - Zerolog integration requirements
 
 ## Development Setup
 
@@ -68,6 +74,7 @@
    - Go 1.23 or later
    - Clay repository
    - Glazed package
+   - Zerolog for logging
 
 2. **Build Process**
    ```shell
@@ -79,6 +86,7 @@
    - Unit tests for all components
    - Integration tests for search
    - Performance benchmarks
+   - Logging verification
 
 ## Technical Decisions
 
@@ -99,6 +107,12 @@
    - No persistence needed
    - Simple implementation
    - Lower resource usage
+
+4. **Structured Logging**
+   - Zerolog for performance
+   - Debug-level operation tracing
+   - Structured fields for filtering
+   - Consistent logging patterns
 
 ## Core Technologies
 
