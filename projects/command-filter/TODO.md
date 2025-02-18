@@ -164,12 +164,6 @@ Implement a flexible command filter system using Bleve as the search backend, al
     )
     ```
 
-- [ ] Test with large command sets
-- [ ] Test migration scenarios
-  - [ ] Test with existing commands
-  - [ ] Verify backward compatibility
-  - [ ] Handle edge cases
-
 ### 3. CLI Integration
 - [ ] Add filter subcommand
   - [ ] Implement basic filtering

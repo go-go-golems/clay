@@ -149,3 +149,8 @@ func (b *Builder) MetadataMatch(matches map[string]interface{}) *FilterBuilder {
 		b.opts,
 	)
 }
+
+// MatchAll creates a filter that matches all commands
+func (b *Builder) MatchAll() *FilterBuilder {
+	return NewFilterBuilder(bleve.NewMatchAllQuery(), b.opts)
+}
