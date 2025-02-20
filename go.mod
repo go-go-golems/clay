@@ -9,7 +9,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-go-golems/glazed v0.5.31
+	github.com/go-go-golems/glazed v0.5.34
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gorilla/websocket v1.5.3
@@ -20,7 +20,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.10.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
