@@ -36,7 +36,7 @@ The filefilter package provides a flexible and powerful way to filter files and 
 The simplest way to create a FileFilter is using the `NewFileFilter` constructor:
 
 ```go
-import "github.com/your-repo/filefilter"
+import "github.com/go-go-golems/clay/pkg/filefilter"
 
 // Create with default settings
 ff := filefilter.NewFileFilter()
@@ -129,7 +129,7 @@ The FileFilter package is designed to work seamlessly with the FileWalker packag
 
 ```go
 import (
-    "github.com/your-repo/filefilter"
+    "github.com/go-go-golems/clay/pkg/filefilter"
     "github.com/go-go-golems/clay/pkg/filewalker"
 )
 

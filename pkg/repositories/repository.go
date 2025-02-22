@@ -140,7 +140,7 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 				r.loader,
 				options_, aliasOptions)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "could not load commands from %s", directory.Name)
 			}
 			for _, command := range commands_ {
 				switch v := command.(type) {

@@ -33,7 +33,7 @@ The Watcher package provides a simple and flexible way to watch for file system 
 ## Installation
 
 ```bash
-go get github.com/your-repo/clay/pkg/watcher
+go get github.com/go-go-golems/clay/pkg/watcher
 ```
 
 ## Usage
@@ -46,7 +46,7 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/your-repo/clay/pkg/watcher"
+    "github.com/go-go-golems/clay/pkg/watcher"
 )
 
 func main() {
@@ -188,7 +188,7 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/your-repo/clay/pkg/watcher"
+    "github.com/go-go-golems/clay/pkg/watcher"
     "os"
     "os/signal"
     "syscall"
