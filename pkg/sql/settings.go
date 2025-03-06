@@ -2,6 +2,7 @@ package sql
 
 import (
 	_ "embed"
+
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -98,4 +99,22 @@ func OpenDatabaseFromSqlConnectionLayer(
 		return nil, err2
 	}
 	return config.Connect()
+}
+
+func NewConfigFromRawParsedLayers(parsedLayers *layers.ParsedLayers) (*DatabaseConfig, error) {
+	sqlConnectionLayer, ok := parsedLayers.Get(SqlConnectionSlug)
+	if !ok {
+		return nil, errors.New("No sql-connection layer found")
+	}
+	dbtLayer, ok := parsedLayers.Get(DbtSlug)
+	if !ok {
+		return nil, errors.New("No dbt layer found")
+	}
+
+	config, err := NewConfigFromParsedLayers(sqlConnectionLayer, dbtLayer)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }
