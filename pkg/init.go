@@ -76,7 +76,7 @@ func InitLoggerWithConfig(config *LogConfig) error {
 		zerolog.SetGlobalLevel(zerolog.FatalLevel)
 	}
 
-	log.Logger.Info().Str("format", config.LogFormat).
+	log.Logger.Debug().Str("format", config.LogFormat).
 		Str("level", config.Level).
 		Str("file", config.LogFile).
 		Msg("Logger initialized")
