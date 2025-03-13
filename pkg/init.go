@@ -2,14 +2,16 @@ package pkg
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"io"
-	"os"
-	"strings"
 )
 
 type LogConfig struct {
@@ -23,6 +25,10 @@ func InitLoggerWithConfig(config *LogConfig) error {
 	if config.WithCaller {
 		log.Logger = log.With().Caller().Logger()
 	}
+
+	// Set timestamp format to include milliseconds
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+
 	// default is json
 	var logWriter io.Writer
 	if config.LogFormat == "text" {
@@ -42,9 +48,11 @@ func InitLoggerWithConfig(config *LogConfig) error {
 		var writer io.Writer
 		writer = fileLogger
 		if config.LogFormat == "text" {
+			log.Info().Str("file", config.LogFile).Msg("Logging to file")
 			writer = zerolog.ConsoleWriter{
-				NoColor: true,
-				Out:     fileLogger,
+				NoColor:    true,
+				Out:        fileLogger,
+				TimeFormat: time.RFC3339Nano,
 			}
 		}
 		// TODO(manuel, 2024-07-05) We used to support logging to file *and* stderr, but disabling that for now
@@ -67,6 +75,11 @@ func InitLoggerWithConfig(config *LogConfig) error {
 	case "fatal":
 		zerolog.SetGlobalLevel(zerolog.FatalLevel)
 	}
+
+	log.Logger.Debug().Str("format", config.LogFormat).
+		Str("level", config.Level).
+		Str("file", config.LogFile).
+		Msg("Logger initialized")
 
 	return nil
 }
