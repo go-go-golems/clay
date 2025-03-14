@@ -302,6 +302,12 @@ func (w *Watcher) addRecursive(watcher *fsnotify.Watcher, path string) error {
 		return err
 	}
 
+	// Skip socket files
+	if info.Mode()&os.ModeSocket != 0 {
+		log.Debug().Str("path", path).Msg("Skipping socket file")
+		return nil
+	}
+
 	if info.IsDir() {
 		// Directory handling
 		dirPath := path
@@ -325,6 +331,11 @@ func (w *Watcher) addRecursive(watcher *fsnotify.Watcher, path string) error {
 				return nil
 			}
 			if subpath == dirPath {
+				return nil
+			}
+			// Skip socket files during directory walk
+			if info.Mode()&os.ModeSocket != 0 {
+				log.Debug().Str("path", subpath).Msg("Skipping socket file")
 				return nil
 			}
 			log.Trace().Str("path", subpath).Msg("Testing subpath to watcher")

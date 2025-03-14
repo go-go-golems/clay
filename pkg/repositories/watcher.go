@@ -106,7 +106,16 @@ func (r *Repository) Watch(
 			}
 
 			// XXX we would actually need to map the command name to the file name because at this point we assume that the command name is the file base name.
+			fs_, filePath, err := loaders.FileNameToFsFilePath(path)
+			if err != nil {
+				return errors.Wrapf(err, "could not get fs and file path for %s", path)
+			}
 			parents = append(parents, strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)))
+			supported := r.loader.IsFileSupported(fs_, filePath)
+			if !supported {
+				log.Debug().Msgf("File %s is not supported, skipping removal", path)
+				return nil
+			}
 			r.Remove(parents)
 			return nil
 		}),
