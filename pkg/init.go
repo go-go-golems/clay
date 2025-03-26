@@ -78,6 +78,11 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 		return err
 	}
 
+	err = logging.InitLoggerFromViper()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

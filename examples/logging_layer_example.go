@@ -125,13 +125,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize logger from Viper settings
-	err = logging.InitLoggerFromViper()
-	if err != nil {
-		fmt.Printf("Error initializing logger: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Execute the command
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
