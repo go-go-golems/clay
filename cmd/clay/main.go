@@ -6,6 +6,7 @@ import (
 	"github.com/go-go-golems/clay/cmd/clay/repo"
 	clay "github.com/go-go-golems/clay/pkg"
 	"github.com/go-go-golems/glazed/pkg/cli"
+	"github.com/go-go-golems/glazed/pkg/cmds/logging"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ func createRootCmd() *cobra.Command {
 		Use:   "clay",
 		Short: "clay is a CLI tool for managing GO GO GOLEMS business applications",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			err := clay.InitLogger()
+			err := logging.InitLoggerFromViper()
 			cobra.CheckErr(err)
 		},
 	}
@@ -31,7 +32,7 @@ func createRootCmd() *cobra.Command {
 
 	err = clay.InitViper("clay", rootCmd)
 	cobra.CheckErr(err)
-	err = clay.InitLogger()
+	err = logging.InitLoggerFromViper()
 	cobra.CheckErr(err)
 
 	return rootCmd

@@ -2,14 +2,14 @@ module github.com/go-go-golems/clay
 
 go 1.23
 
-toolchain go1.23.2
+toolchain go1.23.7
 
 require (
 	github.com/blevesearch/bleve/v2 v2.4.4
 	github.com/bmatcuk/doublestar/v4 v4.6.1
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-go-golems/glazed v0.5.34
+	github.com/go-go-golems/glazed v0.5.38
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gorilla/websocket v1.5.3
@@ -21,8 +21,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.10.0
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+	golang.org/x/sync v0.11.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -94,7 +93,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
-	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a // indirect
+	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
@@ -123,9 +122,10 @@ require (
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

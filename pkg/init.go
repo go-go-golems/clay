@@ -2,103 +2,14 @@ package pkg
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"github.com/go-go-golems/glazed/pkg/cmds/logging"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
-
-type LogConfig struct {
-	WithCaller bool
-	Level      string
-	LogFormat  string
-	LogFile    string
-}
-
-func InitLoggerWithConfig(config *LogConfig) error {
-	if config.WithCaller {
-		log.Logger = log.With().Caller().Logger()
-	}
-
-	// Set timestamp format to include milliseconds
-	zerolog.TimeFieldFormat = time.RFC3339Nano
-
-	// default is json
-	var logWriter io.Writer
-	if config.LogFormat == "text" {
-		logWriter = zerolog.ConsoleWriter{Out: os.Stderr}
-	} else {
-		logWriter = os.Stderr
-	}
-
-	if config.LogFile != "" {
-		fileLogger := &lumberjack.Logger{
-			Filename:   config.LogFile,
-			MaxSize:    10, // megabytes
-			MaxBackups: 3,
-			MaxAge:     28,    //days
-			Compress:   false, // disabled by default
-		}
-		var writer io.Writer
-		writer = fileLogger
-		if config.LogFormat == "text" {
-			log.Info().Str("file", config.LogFile).Msg("Logging to file")
-			writer = zerolog.ConsoleWriter{
-				NoColor:    true,
-				Out:        fileLogger,
-				TimeFormat: time.RFC3339Nano,
-			}
-		}
-		// TODO(manuel, 2024-07-05) We used to support logging to file *and* stderr, but disabling that for now
-		// because it makes logging in UI apps tricky.
-		// logWriter = io.MultiWriter(logWriter, writer)
-		logWriter = writer
-	}
-
-	log.Logger = log.Output(logWriter)
-
-	switch config.Level {
-	case "debug":
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	case "info":
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	case "warn":
-		zerolog.SetGlobalLevel(zerolog.WarnLevel)
-	case "error":
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-	case "fatal":
-		zerolog.SetGlobalLevel(zerolog.FatalLevel)
-	}
-
-	log.Logger.Debug().Str("format", config.LogFormat).
-		Str("level", config.Level).
-		Str("file", config.LogFile).
-		Msg("Logger initialized")
-
-	return nil
-}
-
-func InitLogger() error {
-	logLevel := viper.GetString("log-level")
-	logLevel = strings.ToLower(logLevel)
-	verbose := viper.GetBool("verbose")
-	if verbose && logLevel != "trace" {
-		logLevel = "debug"
-	}
-
-	return InitLoggerWithConfig(&LogConfig{
-		Level:      logLevel,
-		LogFile:    viper.GetString("log-file"),
-		LogFormat:  viper.GetString("log-format"),
-		WithCaller: viper.GetBool("with-caller"),
-	})
-}
 
 func InitViperWithAppName(appName string, configFile string) error {
 	viper.SetEnvPrefix(appName)
@@ -133,15 +44,10 @@ func InitViperWithAppName(appName string, configFile string) error {
 }
 
 func InitViper(appName string, rootCmd *cobra.Command) error {
-	rootCmd.PersistentFlags().Bool("with-caller", false, "Log caller")
-	rootCmd.PersistentFlags().String("log-level", "info", "Log level (debug, info, warn, error, fatal)")
-	rootCmd.PersistentFlags().String("log-format", "text", "Log format (json, text)")
-	rootCmd.PersistentFlags().String("log-file", "", "Log file (default: stderr)")
-
-	rootCmd.PersistentFlags().Bool("verbose", false, "Verbose output")
-
-	rootCmd.PersistentFlags().String("config", "",
-		fmt.Sprintf("Path to config file (default ~/.%s/config.yml)", appName))
+	err := logging.AddLoggingLayerToRootCommand(rootCmd, appName)
+	if err != nil {
+		return err
+	}
 
 	// parse the flags one time just to catch --config
 	configFile := ""
@@ -153,13 +59,18 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 		}
 	}
 
-	err := InitViperWithAppName(appName, configFile)
+	err = InitViperWithAppName(appName, configFile)
 	if err != nil {
 		return err
 	}
 
 	// Bind the variables to the command-line flags
 	err = viper.BindPFlags(rootCmd.PersistentFlags())
+	if err != nil {
+		return err
+	}
+
+	err = logging.InitLoggerFromViper()
 	if err != nil {
 		return err
 	}
