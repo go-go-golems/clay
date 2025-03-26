@@ -35,9 +35,6 @@ func createRootCmd() *cobra.Command {
 	err = logging.InitLoggerFromViper()
 	cobra.CheckErr(err)
 
-	err = logging.AddLoggingLayerToCobra(rootCmd)
-	cobra.CheckErr(err)
-
 	return rootCmd
 }
 

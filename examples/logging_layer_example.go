@@ -32,14 +32,8 @@ func (c *ExampleCommand) RunIntoGlazeProcessor(
 	parsedLayers *layers.ParsedLayers,
 	gp middlewares.Processor,
 ) error {
-	// Get the logging settings from the parsed layers
-	loggingSettings, err := logging.GetLoggingSettingsFromParsedLayers(parsedLayers)
-	if err != nil {
-		return err
-	}
-
 	// Log some information to show different log levels
-	log.Debug().Interface("settings", loggingSettings).Msg("Logging settings")
+	log.Debug().Msg("Running example command")
 	log.Info().Msg("Running example command")
 	log.Warn().Msg("This is a warning message")
 	log.Error().Msg("This is an error message")
@@ -77,7 +71,26 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "logging-example",
 		Short: "Example application with logging layer",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			err := logging.InitLoggerFromViper()
+			if err != nil {
+				log.Error().Msgf("Error initializing logger: %v", err)
+			}
+			log.Debug().Msg("PersistentPreRun from main")
+		},
 	}
+
+	// Set up Viper and initialize logging
+	err := pkg.InitViper("logging-example", rootCmd)
+	if err != nil {
+		fmt.Printf("Error initializing viper: %v\n", err)
+		os.Exit(1)
+	}
+
+	log.Debug().Msg("Debug message from main")
+	log.Info().Msg("Info message from main")
+	log.Warn().Msg("Warn message from main")
+	log.Error().Msg("Error message from main")
 
 	// Create the example command
 	exampleCmd, err := NewExampleCommand()
@@ -117,13 +130,6 @@ func main() {
 	// Give it a different name
 	anotherCobraCmd.Use = "another-example"
 	rootCmd.AddCommand(anotherCobraCmd)
-
-	// Set up Viper and initialize logging
-	err = pkg.InitViper("logging-example", rootCmd)
-	if err != nil {
-		fmt.Printf("Error initializing viper: %v\n", err)
-		os.Exit(1)
-	}
 
 	// Execute the command
 	if err := rootCmd.Execute(); err != nil {
