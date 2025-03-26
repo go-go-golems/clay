@@ -44,7 +44,7 @@ func InitViperWithAppName(appName string, configFile string) error {
 }
 
 func InitViper(appName string, rootCmd *cobra.Command) error {
-	err := logging.AddLoggingLayerToRootCommand(rootCmd)
+	err := logging.AddLoggingLayerToRootCommand(rootCmd, appName)
 	if err != nil {
 		return err
 	}
