@@ -55,7 +55,8 @@ func NewExampleCommand() (*ExampleCommand, error) {
 		CommandDescription: cmds.NewCommandDescription(
 			"example",
 			cmds.WithShort("Example command showing logging layer usage"),
-			cmds.WithLong("This command demonstrates how to use the logging layer in a Glazed command."),
+			cmds.WithLong("This command demonstrates how to use the logging layer in a Glazed command. "+
+				"It supports various logging formats, levels, and outputs including file and Logstash integration."),
 			cmds.WithLayersList(glazedParameterLayer),
 		),
 	}
@@ -71,6 +72,12 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "logging-example",
 		Short: "Example application with logging layer",
+		Long: `Example application demonstrating the logging layer capabilities.
+The logging layer supports:
+- Different log levels (debug, info, warn, error, fatal)
+- Various output formats (text, json)
+- File logging with rotation
+- Logstash integration for centralized logging`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			err := logging.InitLoggerFromViper()
 			if err != nil {
@@ -136,4 +143,22 @@ func main() {
 		fmt.Printf("Error executing command: %v\n", err)
 		os.Exit(1)
 	}
+
+	/*
+		Examples:
+
+		Basic usage:
+		$ go run examples/logging_layer_example.go example --log-level debug
+
+		Log to a file:
+		$ go run examples/logging_layer_example.go example --log-level debug --log-file example.log
+
+		Use JSON format:
+		$ go run examples/logging_layer_example.go example --log-format json
+
+		Log to Logstash:
+		$ go run examples/logging_layer_example.go example --logstash-enabled --logstash-host localhost --logstash-port 5044 --app-name "my-app" --environment development
+
+		For a dedicated Logstash example, see logstash_example.go
+	*/
 }

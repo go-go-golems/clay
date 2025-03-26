@@ -44,21 +44,10 @@ func InitViperWithAppName(appName string, configFile string) error {
 }
 
 func InitViper(appName string, rootCmd *cobra.Command) error {
-	loggingLayer, err := logging.NewLoggingLayer()
+	err := logging.AddLoggingLayerToRootCommand(rootCmd)
 	if err != nil {
 		return err
 	}
-
-	_ = loggingLayer
-
-	// XXX the proper way would be to allow registering persistent flags to the root command or something
-
-	rootCmd.PersistentFlags().String("config", "",
-		fmt.Sprintf("Path to config file (default ~/.%s/config.yml)", appName))
-	rootCmd.PersistentFlags().String("log-level", "info", "Log level (debug, info, warn, error, fatal)")
-	rootCmd.PersistentFlags().String("log-file", "", "Log file (default: stderr)")
-	rootCmd.PersistentFlags().String("log-format", "text", "Log format (json, text)")
-	rootCmd.PersistentFlags().Bool("with-caller", false, "Log caller information")
 
 	// parse the flags one time just to catch --config
 	configFile := ""
