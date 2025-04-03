@@ -9,7 +9,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-go-golems/glazed v0.5.40
 	github.com/go-go-golems/sqleton v0.2.4
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
