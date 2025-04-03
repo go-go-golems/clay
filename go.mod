@@ -9,9 +9,9 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-go-golems/glazed v0.5.40
 	github.com/go-go-golems/sqleton v0.2.4
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gorilla/websocket v1.5.3
-	github.com/jmoiron/sqlx v1.3.5
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/pkg/errors v0.9.1
@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
