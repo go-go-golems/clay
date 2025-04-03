@@ -2,6 +2,8 @@ package ls_commands
 
 import (
 	"context"
+	"strings"
+
 	glazed_cmds "github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
@@ -11,7 +13,6 @@ import (
 	"github.com/go-go-golems/glazed/pkg/settings"
 	"github.com/go-go-golems/glazed/pkg/types"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 type AddCommandToRowFunc func(cmd glazed_cmds.Command, row types.Row, parsedLayers *layers.ParsedLayers) ([]types.Row, error)
@@ -28,7 +29,7 @@ type ListCommandsCommandOption func(*ListCommandsCommand) error
 
 func WithCommandDescriptionOptions(options ...glazed_cmds.CommandDescriptionOption) ListCommandsCommandOption {
 	return func(q *ListCommandsCommand) error {
-		description := q.CommandDescription.Description()
+		description := q.Description()
 		for _, option := range options {
 			option(description)
 		}

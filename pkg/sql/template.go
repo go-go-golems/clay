@@ -3,20 +3,21 @@ package sql
 import (
 	"context"
 	"fmt"
+	"strings"
+	"text/template"
+	"time"
+
 	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
 	"github.com/go-go-golems/glazed/pkg/helpers/cast"
 	"github.com/go-go-golems/glazed/pkg/helpers/templating"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"strings"
-	"text/template"
-	"time"
 )
 
 // sqlEscape escapes single quotes in a string for SQL queries.
 // It doubles any single quote characters to prevent SQL injection.
 func sqlEscape(value string) string {
-	return strings.Replace(value, "'", "''", -1)
+	return strings.ReplaceAll(value, "'", "''")
 }
 
 // sqlString wraps a string value in single quotes for SQL queries.

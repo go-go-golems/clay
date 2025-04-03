@@ -36,7 +36,11 @@ func (e *YAMLEditor) Save(filename string) error {
 	if err != nil {
 		return fmt.Errorf("could not create file: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Printf("Error closing file: %v\n", err)
+		}
+	}()
 
 	encoder := yaml.NewEncoder(f)
 	encoder.SetIndent(2)

@@ -68,11 +68,15 @@ func NewCommandIndex(commands []*cmds.CommandDescription) (*CommandIndex, error)
 	for _, cmd := range commands {
 		doc := newCommandDocument(cmd)
 		if err := doc.validate(); err != nil {
-			index.Close()
+			if closeErr := index.Close(); closeErr != nil {
+				log.Error().Err(closeErr).Msg("Error closing index after validation failure")
+			}
 			return nil, err
 		}
 		if err := index.Index(cmd.Name, doc); err != nil {
-			index.Close()
+			if closeErr := index.Close(); closeErr != nil {
+				log.Error().Err(closeErr).Msg("Error closing index after indexing failure")
+			}
 			return nil, err
 		}
 	}

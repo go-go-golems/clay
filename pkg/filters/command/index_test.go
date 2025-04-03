@@ -42,7 +42,10 @@ func TestCommandIndex_SimpleSearch(t *testing.T) {
 	// Create index
 	index, err := NewCommandIndex(commands)
 	require.NoError(t, err)
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		require.NoError(t, err)
+	}()
 
 	// Test cases
 	tests := []struct {

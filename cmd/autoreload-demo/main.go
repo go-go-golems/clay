@@ -39,7 +39,9 @@ func main() {
 </body>
 </html>
 `
-		fmt.Fprint(w, html)
+		if _, err := fmt.Fprint(w, html); err != nil {
+			log.Printf("Error writing response: %v", err)
+		}
 	})
 
 	// Trigger a reload every 5 seconds
@@ -51,6 +53,13 @@ func main() {
 	}()
 
 	// Start the HTTP server
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      nil, // Use default ServeMux
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 	log.Println("Server started on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(server.ListenAndServe())
 }

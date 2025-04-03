@@ -22,7 +22,7 @@ type EditCommandOption func(*EditCommand) error
 
 func WithCommandDescriptionOptions(options ...glazed_cmds.CommandDescriptionOption) EditCommandOption {
 	return func(q *EditCommand) error {
-		description := q.CommandDescription.Description()
+		description := q.Description()
 		for _, option := range options {
 			option(description)
 		}

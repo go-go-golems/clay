@@ -38,7 +38,10 @@ func TestComplexQueries_TypeAndTag(t *testing.T) {
 	// Create index
 	index, err := NewCommandIndex(commands)
 	require.NoError(t, err)
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		require.NoError(t, err)
+	}()
 
 	ctx := context.Background()
 	b := builder.New()
@@ -109,7 +112,10 @@ func TestComplexQueries_PathBased(t *testing.T) {
 	// Create index
 	index, err := NewCommandIndex(commands)
 	require.NoError(t, err)
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		require.NoError(t, err)
+	}()
 
 	ctx := context.Background()
 	b := builder.New()
@@ -185,7 +191,10 @@ func TestComplexQueries_Metadata(t *testing.T) {
 	// Create index
 	index, err := NewCommandIndex(commands)
 	require.NoError(t, err)
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		require.NoError(t, err)
+	}()
 
 	ctx := context.Background()
 	b := builder.New()
@@ -262,7 +271,10 @@ func TestComplexQueries_NamePattern(t *testing.T) {
 	// Create index
 	index, err := NewCommandIndex(commands)
 	require.NoError(t, err)
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		require.NoError(t, err)
+	}()
 
 	ctx := context.Background()
 	b := builder.New()
@@ -347,7 +359,10 @@ func TestComplexQueries_NestedCombinations(t *testing.T) {
 	// Create index
 	index, err := NewCommandIndex(commands)
 	require.NoError(t, err)
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		require.NoError(t, err)
+	}()
 
 	ctx := context.Background()
 	b := builder.New()

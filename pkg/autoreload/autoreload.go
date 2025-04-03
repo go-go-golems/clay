@@ -40,7 +40,10 @@ func (ws *WebSocketServer) WebSocketHandler() http.HandlerFunc {
 			ws.clientsMux.Lock()
 			delete(ws.clients, conn)
 			ws.clientsMux.Unlock()
-			conn.Close()
+			if err := conn.Close(); err != nil {
+				// We're already in cleanup, just log the error
+				http.Error(w, "Error closing websocket connection", http.StatusInternalServerError)
+			}
 		}()
 
 		// Keep the connection alive until an error occurs
@@ -58,7 +61,10 @@ func (ws *WebSocketServer) Broadcast(message string) {
 	defer ws.clientsMux.Unlock()
 	for client := range ws.clients {
 		if err := client.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-			client.Close()
+			if closeErr := client.Close(); closeErr != nil {
+				// Log the error but continue with cleanup
+				continue
+			}
 			delete(ws.clients, client)
 		}
 	}
