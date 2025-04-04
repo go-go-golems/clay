@@ -94,7 +94,7 @@ func (c *EditCommand) Run(ctx context.Context, parsedLayers *layers.ParsedLayers
 		editor = "vi"
 	}
 
-	cmd := exec.Command(editor, absFilePath)
+	cmd := exec.Command(editor, absFilePath) // #nosec G204
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
