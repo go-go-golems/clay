@@ -7,7 +7,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.8.0
-	github.com/go-go-golems/glazed v0.5.42
+	github.com/go-go-golems/glazed v0.5.43
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/gorilla/websocket v1.5.3
