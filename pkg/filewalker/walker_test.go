@@ -180,4 +180,37 @@ func TestWalker_WithFilter(t *testing.T) {
 	}
 }
 
+func TestWalker_WithFilter_RootFiltered(t *testing.T) {
+	testFS := fstest.MapFS{
+		"file1.txt":         &fstest.MapFile{},
+		"subdir1/file2.txt": &fstest.MapFile{},
+	}
+
+	filter := func(node *Node) bool {
+		// Filter out the root directory itself
+		return node.Path != "/"
+	}
+
+	w, err := NewWalker(WithFS(testFS), WithFilter(filter))
+	if err != nil {
+		t.Fatalf("Failed to create Walker: %v", err)
+	}
+
+	var visitedNodes int
+	visitFunc := func(w *Walker, node *Node) error {
+		visitedNodes++
+		return nil
+	}
+
+	// Expect no panic here, even though the root is filtered out.
+	err = w.Walk([]string{"."}, visitFunc, nil)
+	if err != nil {
+		t.Fatalf("Walk failed unexpectedly: %v", err)
+	}
+
+	if visitedNodes != 0 {
+		t.Errorf("Expected 0 visited nodes since root was filtered, got %d", visitedNodes)
+	}
+}
+
 // Add more tests for other methods as needed...
