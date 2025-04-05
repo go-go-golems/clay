@@ -149,9 +149,15 @@ func (w *Walker) walkFS(rootPaths []string, preVisit VisitFunc, postVisit VisitF
 		if err != nil {
 			return err
 		}
+
+		if node == nil {
+			continue
+		}
+
 		if w.filter != nil && !w.filter(node) {
 			continue
 		}
+
 		if err := w.walkNode(node, preVisit, postVisit); err != nil {
 			return err
 		}
