@@ -7,7 +7,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/go-go-golems/glazed v0.5.43
+	github.com/go-go-golems/glazed v0.5.44
 	github.com/go-go-golems/sqleton v0.2.4
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/gorilla/websocket v1.5.3
@@ -19,6 +19,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
+	github.com/wk8/go-ordered-map/v2 v2.1.8
 	golang.org/x/sync v0.13.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -110,7 +111,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tj/go-naturaldate v1.3.0 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
-	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xuri/efp v0.0.0-20240408161823-9ad904a10d6d // indirect
 	github.com/xuri/excelize/v2 v2.9.0 // indirect
