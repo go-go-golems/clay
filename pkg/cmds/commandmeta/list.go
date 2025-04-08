@@ -27,7 +27,6 @@ type ListCommand struct {
 	originalCommands []glazed_cmds.Command
 	// commandDescriptions are used for indexing and filtering
 	commandDescriptions []*glazed_cmds.CommandDescription
-	index               *clay_command_filter.CommandIndex
 	addCommandToRowFunc AddCommandToRowFunc
 }
 
@@ -39,12 +38,6 @@ func newListCommand(
 	descriptions []*glazed_cmds.CommandDescription,
 	addFunc AddCommandToRowFunc,
 ) (*ListCommand, error) {
-	// Create the command index for efficient filtering
-	index, err := clay_command_filter.NewCommandIndex(descriptions)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create command index")
-	}
-
 	// Create glazed parameter layer for output formatting
 	glazedLayer, err := settings.NewGlazedParameterLayers(
 		// Set default fields for the table output
@@ -73,7 +66,6 @@ func newListCommand(
 		),
 		originalCommands:    originalCommands,
 		commandDescriptions: descriptions,
-		index:               index,
 		addCommandToRowFunc: addFunc,
 	}, nil
 }
@@ -84,6 +76,12 @@ func (c *ListCommand) RunIntoGlazeProcessor(
 	parsedLayers *layers.ParsedLayers,
 	gp middlewares.Processor,
 ) error {
+	// Create the command index for efficient filtering
+	index, err := clay_command_filter.NewCommandIndex(c.commandDescriptions)
+	if err != nil {
+		return errors.Wrap(err, "could not create command index")
+	}
+
 	// Parse settings, including filter flags
 	s, err := clay_command_builder.GetFilterSettingsFromParsedLayers(parsedLayers)
 	if err != nil {
@@ -95,7 +93,7 @@ func (c *ListCommand) RunIntoGlazeProcessor(
 	filter := clay_command_builder.BuildFilterFromSettings(s, b)
 
 	// Execute search using the index
-	matches, err := c.index.Search(ctx, filter, c.commandDescriptions)
+	matches, err := index.Search(ctx, filter, c.commandDescriptions)
 	if err != nil {
 		return errors.Wrap(err, "could not search commands")
 	}
