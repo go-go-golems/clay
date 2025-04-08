@@ -1,10 +1,10 @@
 on:
   workflow_dispatch:
 
-  push:
-    # run only against tags
-    tags:
-      - '*'
+  # push:
+  #   # run only against tags
+  #   tags:
+  #     - '*'
 
 permissions:
   contents: write
