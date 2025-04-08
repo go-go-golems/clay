@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+//go:generate go run ../../../../cmd/go-mockgen/main.go -i FilterBuilder -o mock_filter_builder_test.go
+
 // Builder provides methods for creating command filters
 type Builder struct {
 	opts *Options
