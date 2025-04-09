@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"gopkg.in/yaml.v3"
+	"slices"
 )
 
 // YAMLEditor provides utilities for manipulating YAML files while preserving comments and structure
@@ -150,7 +151,7 @@ func (e *YAMLEditor) RemoveFromSequence(index int, path ...string) error {
 		return fmt.Errorf("index %d out of range for sequence at path %v", index, path)
 	}
 
-	target.Content = append(target.Content[:index], target.Content[index+1:]...)
+	target.Content = slices.Delete(target.Content, index, index+1)
 	return nil
 }
 

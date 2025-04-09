@@ -1,12 +1,10 @@
 package repositories
 
 import (
-	"embed"
 	"fmt"
 	"path/filepath"
 
 	yaml_editor "github.com/go-go-golems/clay/pkg/yaml-editor"
-	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -207,11 +205,4 @@ func NewPrintRepositoriesCommand() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-//go:embed docs/*
-var docFS embed.FS
-
-func AddDocToHelpSystem(helpSystem *help.HelpSystem) error {
-	return helpSystem.LoadSectionsFromFS(docFS, ".")
 }

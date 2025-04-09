@@ -24,9 +24,6 @@ build:
 	go generate ./...
 	go build ./...
 
-goreleaser:
-	goreleaser release --skip=sign --snapshot --clean
-
 tag-major:
 	git tag $(shell svu major)
 

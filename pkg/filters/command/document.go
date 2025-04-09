@@ -42,10 +42,10 @@ func newCommandDocument(cmd *cmds.CommandDescription) *commandDocument {
 // validate checks if the document has all required fields
 func (d *commandDocument) validate() error {
 	if d.Name == "" {
-		return fmt.Errorf("command document must have a name")
+		return fmt.Errorf("command document %s must have a name", d.FullPath)
 	}
 	if d.Type == "" {
-		return fmt.Errorf("command document must have a type")
+		return fmt.Errorf("command document %s (name: %s) must have a type", d.FullPath, d.Name)
 	}
 	return nil
 }
