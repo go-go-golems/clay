@@ -154,6 +154,10 @@ func (r *Repository) LoadCommands(helpSystem *help.HelpSystem, options ...cmds.C
 			}
 
 			// Check if the RootDocDirectory exists
+			if directory.RootDocDirectory == "" {
+				continue
+			}
+
 			file, err := directory.FS.Open(directory.RootDocDirectory)
 			if err != nil {
 				if os.IsNotExist(err) {
