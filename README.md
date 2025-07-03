@@ -42,6 +42,33 @@ Clay provides essential utilities and helper packages that solve common developm
 
 ## Packages
 
+### ⚙️ Configuration (`pkg/init.go`)
+Provides convenient Viper configuration initialization for Go applications. Clay wraps Viper with opinionated defaults and integration with Cobra CLI and structured logging.
+
+Features:
+- Multi-path config file discovery (`~/.appname`, `/etc/appname`, XDG config)
+- Environment variable support with automatic prefix handling
+- Cobra flag binding integration
+- Automatic logger initialization from config
+- Support for both global and instance-based Viper usage
+
+```go
+// Initialize with Cobra integration
+err := pkg.InitViper("myapp", rootCmd)
+
+// Or initialize standalone
+err := pkg.InitViperWithAppName("myapp", "config.yaml")
+
+// Create separate Viper instance
+v, err := pkg.InitViperInstanceWithAppName("myapp", "")
+```
+
+Configuration file locations (in order of precedence):
+- Explicit config file path
+- `~/.appname/config.yaml`
+- `/etc/appname/config.yaml`
+- XDG config directory (`~/.config/appname/config.yaml`)
+
 ### 🔄 Autoreload (`pkg/autoreload`)
 A WebSocket-based solution for automatically reloading web pages. Perfect for development environments where you want instant feedback on changes.
 
