@@ -118,3 +118,37 @@ func NewConfigFromRawParsedLayers(parsedLayers *layers.ParsedLayers) (*DatabaseC
 
 	return config, nil
 }
+
+// GetConnectionStringFromParsedLayers extracts a connection string from parsed layers
+// This is useful for tools like River that need a connection string directly
+func GetConnectionStringFromParsedLayers(parsedLayers *layers.ParsedLayers) (string, error) {
+	config, err := NewConfigFromRawParsedLayers(parsedLayers)
+	if err != nil {
+		return "", err
+	}
+
+	return config.GetConnectionString()
+}
+
+// GetConnectionStringFromSqlConnectionLayer extracts a connection string from specific layer names
+func GetConnectionStringFromSqlConnectionLayer(
+	parsedLayers *layers.ParsedLayers,
+	sqlConnectionLayerName string,
+	dbtLayerName string,
+) (string, error) {
+	sqlConnectionLayer, ok := parsedLayers.Get(sqlConnectionLayerName)
+	if !ok {
+		return "", errors.New("No sql-connection layer found")
+	}
+	dbtLayer, ok := parsedLayers.Get(dbtLayerName)
+	if !ok {
+		return "", errors.New("No dbt layer found")
+	}
+
+	config, err := NewConfigFromParsedLayers(sqlConnectionLayer, dbtLayer)
+	if err != nil {
+		return "", err
+	}
+
+	return config.GetConnectionString()
+}

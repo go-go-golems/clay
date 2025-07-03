@@ -94,7 +94,7 @@ func (c *DatabaseConfig) GetSource() (*Source, error) {
 		}
 
 		for _, s := range sources {
-			log.Debug().
+			log.Trace().
 				Str("Profile", c.DbtProfile).
 				Str("name", s.Name).
 				Msg("Checking source")
@@ -126,24 +126,39 @@ func (c *DatabaseConfig) GetSource() (*Source, error) {
 	return source, nil
 }
 
+// GetConnectionString returns the connection string for this database config
+func (c *DatabaseConfig) GetConnectionString() (string, error) {
+	if c.DSN != "" {
+		return c.DSN, nil
+	}
+
+	s, err := c.GetSource()
+	if err != nil {
+		return "", err
+	}
+
+	return s.ToConnectionString(), nil
+}
+
 func (c *DatabaseConfig) Connect() (*sqlx.DB, error) {
 	c.LogVerbose()
 
 	var dbType string
-	connectionString := ""
+	connectionString, err := c.GetConnectionString()
+	if err != nil {
+		return nil, err
+	}
+
 	if c.DSN != "" {
 		dbType = c.Driver
-		connectionString = c.DSN
 	} else {
 		s, err := c.GetSource()
 		if err != nil {
 			return nil, err
 		}
-
 		dbType = s.Type
-		connectionString = s.ToConnectionString()
-
 	}
+
 	db, err := sqlx.Connect(dbType, connectionString)
 
 	// TODO(2022-12-18, manuel): this is where we would add support for a ro connection
