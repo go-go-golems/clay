@@ -52,7 +52,7 @@ func NewCommandManagementCommandGroup(
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create list command")
 	}
-	listCobraCmd, err := cli.BuildCobraCommandFromGlazeCommand(listCmd)
+	listCobraCmd, err := cli.BuildCobraCommand(listCmd)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build list cobra command")
 	}

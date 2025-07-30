@@ -56,7 +56,7 @@ func LoadRepositories(
 	helpSystem *help.HelpSystem,
 	rootCmd *cobra.Command,
 	repositories_ []*Repository,
-	options ...cli.CobraParserOption,
+	options ...cli.CobraOption,
 ) ([]cmds.Command, error) {
 
 	allCommands := []cmds.Command{}
