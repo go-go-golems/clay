@@ -15,9 +15,9 @@ import (
 
 func BuildCobraCommandWithSqletonMiddlewares(
 	cmd cmds.Command,
-	options ...cli.CobraParserOption,
+	options ...cli.CobraOption,
 ) (*cobra.Command, error) {
-	options_ := append([]cli.CobraParserOption{
+	options_ := append([]cli.CobraOption{
 		cli.WithCobraMiddlewaresFunc(GetCobraCommandSqletonMiddlewares),
 		cli.WithCobraShortHelpLayers(layers.DefaultSlug, DbtSlug, SqlConnectionSlug, flags.SqlHelpersSlug),
 		cli.WithCreateCommandSettingsLayer(),

@@ -1,0 +1,14 @@
+title: 🔧 Fix compilation issues with CobraParserOption to CobraOption migration
+description: |
+  Updated clay package to use the new glazed API after CobraParserOption was replaced with CobraOption.
+  
+  Changes:
+  - pkg/repositories/helpers.go: Updated LoadRepositories function signature to use cli.CobraOption
+  - pkg/sql/cobra.go: Updated BuildCobraCommandWithSqletonMiddlewares function to use cli.CobraOption
+  
+  The new API maintains the same functionality but uses:
+  - CobraOption instead of CobraParserOption
+  - WithParserConfig() for parser configuration
+  - CobraParserConfig struct for configuration options
+  
+  Tests: go build ./... passes successfully
