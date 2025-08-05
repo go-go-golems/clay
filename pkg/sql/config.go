@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	_ "github.com/go-sql-driver/mysql"
@@ -9,6 +10,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"strings"
+	"time"
 )
 
 type DatabaseConfig struct {
@@ -140,7 +143,14 @@ func (c *DatabaseConfig) GetConnectionString() (string, error) {
 	return s.ToConnectionString(), nil
 }
 
-func (c *DatabaseConfig) Connect() (*sqlx.DB, error) {
+func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
+	// enforce driver-level timeout for unreachable endpoints
+	if c.Driver == "postgres" || c.Driver == "pgx" {
+		// append connect_timeout if missing
+		if !strings.Contains(c.DSN, "connect_timeout") {
+			c.DSN = c.DSN + " connect_timeout=5"
+		}
+	}
 	c.LogVerbose()
 
 	var dbType string
@@ -159,7 +169,17 @@ func (c *DatabaseConfig) Connect() (*sqlx.DB, error) {
 		dbType = s.Type
 	}
 
-	db, err := sqlx.Connect(dbType, connectionString)
+	db, err := sqlx.Open(dbType, connectionString)
+	if err != nil {
+		return nil, err
+	}
+	// use context with timeout for ping
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(pingCtx); err != nil {
+		_ = db.Close()
+		return nil, errors.Wrap(err, "failed to ping database")
+	}
 
 	// TODO(2022-12-18, manuel): this is where we would add support for a ro connection
 	// https://github.com/wesen/sqleton/issues/24

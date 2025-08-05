@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	_ "embed"
 
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
@@ -70,17 +71,19 @@ func NewDbtParameterLayer(
 	}, nil
 }
 
-type DBConnectionFactory func(parsedLayers *layers.ParsedLayers) (*sqlx.DB, error)
+type DBConnectionFactory func(ctx context.Context, parsedLayers *layers.ParsedLayers) (*sqlx.DB, error)
 
 func OpenDatabaseFromDefaultSqlConnectionLayer(
+	ctx context.Context,
 	parsedLayers *layers.ParsedLayers,
 ) (*sqlx.DB, error) {
-	return OpenDatabaseFromSqlConnectionLayer(parsedLayers, SqlConnectionSlug, DbtSlug)
+	return OpenDatabaseFromSqlConnectionLayer(ctx, parsedLayers, SqlConnectionSlug, DbtSlug)
 }
 
 var _ DBConnectionFactory = OpenDatabaseFromDefaultSqlConnectionLayer
 
 func OpenDatabaseFromSqlConnectionLayer(
+	ctx context.Context,
 	parsedLayers *layers.ParsedLayers,
 	sqlConnectionLayerName string,
 	dbtLayerName string,
@@ -98,7 +101,7 @@ func OpenDatabaseFromSqlConnectionLayer(
 	if err2 != nil {
 		return nil, err2
 	}
-	return config.Connect()
+	return config.Connect(ctx)
 }
 
 func NewConfigFromRawParsedLayers(parsedLayers *layers.ParsedLayers) (*DatabaseConfig, error) {
