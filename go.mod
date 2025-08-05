@@ -2,7 +2,7 @@ module github.com/go-go-golems/clay
 
 go 1.24.2
 
-toolchain go1.24.4
+toolchain go1.24.5
 
 require (
 	github.com/blevesearch/bleve/v2 v2.5.0
