@@ -6,7 +6,7 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -144,8 +144,13 @@ func (c *DatabaseConfig) GetConnectionString() (string, error) {
 }
 
 func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
+	// DEBUG: Monitor context cancellation
+	go func() {
+		<-ctx.Done()
+		fmt.Printf("[CONFIG DEBUG] Context cancelled in Connect() - signal received: %v\n", ctx.Err())
+	}()
 	// enforce driver-level timeout for unreachable endpoints
-	if c.Driver == "postgres" || c.Driver == "pgx" {
+	if c.Driver == "pgx" {
 		// append connect_timeout if missing
 		if !strings.Contains(c.DSN, "connect_timeout") {
 			c.DSN = c.DSN + " connect_timeout=5"
@@ -169,17 +174,29 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 		dbType = s.Type
 	}
 
+	log.Debug().Msg("Opening database connection")
 	db, err := sqlx.Open(dbType, connectionString)
 	if err != nil {
 		return nil, err
 	}
+	log.Debug().Msg("Database connection established")
 	// use context with timeout for ping
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+	
+	// DEBUG: Monitor ping context cancellation
+	go func() {
+		<-pingCtx.Done()
+		fmt.Printf("[CONFIG DEBUG] PingContext cancelled - reason: %v\n", pingCtx.Err())
+	}()
+	
+	fmt.Printf("[CONFIG DEBUG] Starting PingContext call\n")
 	if err := db.PingContext(pingCtx); err != nil {
+		fmt.Printf("[CONFIG DEBUG] PingContext failed with error: %v\n", err)
 		_ = db.Close()
 		return nil, errors.Wrap(err, "failed to ping database")
 	}
+	fmt.Printf("[CONFIG DEBUG] PingContext succeeded\n")
 
 	// TODO(2022-12-18, manuel): this is where we would add support for a ro connection
 	// https://github.com/wesen/sqleton/issues/24

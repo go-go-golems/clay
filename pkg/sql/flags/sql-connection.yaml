@@ -35,7 +35,7 @@ flags:
     shorthand: s
   - name: db-type
     type: string
-    help: Database type (mysql, postgres, etc.)
+    help: Database type (mysql, pgx, etc.)
     default: mysql
     shorthand: t
   - name: repository
