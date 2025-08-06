@@ -3,15 +3,16 @@ package sql
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"strings"
-	"time"
 )
 
 type DatabaseConfig struct {
@@ -38,14 +39,21 @@ func (c *DatabaseConfig) LogVerbose() {
 			Str("dbt-profile", c.DbtProfile).
 			Msg("Using dbt profiles")
 
+		// Get the actual source values from DBT profile
+		source, err := c.GetSource()
+		if err != nil {
+			log.Debug().Err(err).Msg("Failed to get source from dbt profile")
+			return
+		}
+
 		log.Debug().
-			Str("host", c.Host).
-			Str("database", c.Database).
-			Str("user", c.User).
-			Int("port", c.Port).
-			Str("schema", c.Schema).
-			Str("type", c.Type).
-			Msg("Using connection string")
+			Str("host", source.Hostname).
+			Str("database", source.Database).
+			Str("user", source.Username).
+			Int("port", source.Port).
+			Str("schema", source.Schema).
+			Str("type", source.Type).
+			Msg("Using connection string from dbt profile")
 	} else if c.DSN != "" {
 		log.Debug().
 			Str("dsn", c.DSN).
@@ -145,7 +153,7 @@ func (c *DatabaseConfig) GetConnectionString() (string, error) {
 
 func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 	// enforce driver-level timeout for unreachable endpoints
-	if c.Driver == "postgres" || c.Driver == "pgx" {
+	if c.Driver == "pgx" {
 		// append connect_timeout if missing
 		if !strings.Contains(c.DSN, "connect_timeout") {
 			c.DSN = c.DSN + " connect_timeout=5"
@@ -169,13 +177,16 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 		dbType = s.Type
 	}
 
+	log.Debug().Msg("Opening database connection")
 	db, err := sqlx.Open(dbType, connectionString)
 	if err != nil {
 		return nil, err
 	}
+	log.Debug().Msg("Database connection established")
 	// use context with timeout for ping
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
 	if err := db.PingContext(pingCtx); err != nil {
 		_ = db.Close()
 		return nil, errors.Wrap(err, "failed to ping database")
