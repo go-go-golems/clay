@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -38,14 +38,21 @@ func (c *DatabaseConfig) LogVerbose() {
 			Str("dbt-profile", c.DbtProfile).
 			Msg("Using dbt profiles")
 
+		// Get the actual source values from DBT profile
+		source, err := c.GetSource()
+		if err != nil {
+			log.Debug().Err(err).Msg("Failed to get source from dbt profile")
+			return
+		}
+
 		log.Debug().
-			Str("host", c.Host).
-			Str("database", c.Database).
-			Str("user", c.User).
-			Int("port", c.Port).
-			Str("schema", c.Schema).
-			Str("type", c.Type).
-			Msg("Using connection string")
+			Str("host", source.Hostname).
+			Str("database", source.Database).
+			Str("user", source.Username).
+			Int("port", source.Port).
+			Str("schema", source.Schema).
+			Str("type", source.Type).
+			Msg("Using connection string from dbt profile")
 	} else if c.DSN != "" {
 		log.Debug().
 			Str("dsn", c.DSN).
@@ -183,13 +190,13 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 	// use context with timeout for ping
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	
+
 	// DEBUG: Monitor ping context cancellation
 	go func() {
 		<-pingCtx.Done()
 		fmt.Printf("[CONFIG DEBUG] PingContext cancelled - reason: %v\n", pingCtx.Err())
 	}()
-	
+
 	fmt.Printf("[CONFIG DEBUG] Starting PingContext call\n")
 	if err := db.PingContext(pingCtx); err != nil {
 		fmt.Printf("[CONFIG DEBUG] PingContext failed with error: %v\n", err)

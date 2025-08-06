@@ -73,26 +73,26 @@ func ParseDbtProfiles(profilesPath string) ([]*Source, error) {
 	for name, profile := range profiles {
 		for outputName, source := range profile.Outputs {
 			source.Name = fmt.Sprintf("%s.%s", name, outputName)
-			
+
 			// Convert postgres type to pgx for proper driver usage
 			if source.Type == "postgres" {
 				source.Type = "pgx"
 			}
-			
+
 			ret = append(ret, source)
 		}
-		
+
 		// Also create a source for the default target of each profile
 		if profile.Target != "" {
 			if defaultOutput, exists := profile.Outputs[profile.Target]; exists {
 				defaultSource := *defaultOutput // copy the source
 				defaultSource.Name = name       // just use profile name
-				
+
 				// Convert postgres type to pgx for proper driver usage
 				if defaultSource.Type == "postgres" {
 					defaultSource.Type = "pgx"
 				}
-				
+
 				ret = append(ret, &defaultSource)
 			}
 		}
