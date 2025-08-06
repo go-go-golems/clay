@@ -3,6 +3,9 @@ package sql
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -10,8 +13,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"strings"
-	"time"
 )
 
 type DatabaseConfig struct {
@@ -151,11 +152,6 @@ func (c *DatabaseConfig) GetConnectionString() (string, error) {
 }
 
 func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
-	// DEBUG: Monitor context cancellation
-	go func() {
-		<-ctx.Done()
-		fmt.Printf("[CONFIG DEBUG] Context cancelled in Connect() - signal received: %v\n", ctx.Err())
-	}()
 	// enforce driver-level timeout for unreachable endpoints
 	if c.Driver == "pgx" {
 		// append connect_timeout if missing
@@ -191,19 +187,10 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	// DEBUG: Monitor ping context cancellation
-	go func() {
-		<-pingCtx.Done()
-		fmt.Printf("[CONFIG DEBUG] PingContext cancelled - reason: %v\n", pingCtx.Err())
-	}()
-
-	fmt.Printf("[CONFIG DEBUG] Starting PingContext call\n")
 	if err := db.PingContext(pingCtx); err != nil {
-		fmt.Printf("[CONFIG DEBUG] PingContext failed with error: %v\n", err)
 		_ = db.Close()
 		return nil, errors.Wrap(err, "failed to ping database")
 	}
-	fmt.Printf("[CONFIG DEBUG] PingContext succeeded\n")
 
 	// TODO(2022-12-18, manuel): this is where we would add support for a ro connection
 	// https://github.com/wesen/sqleton/issues/24
