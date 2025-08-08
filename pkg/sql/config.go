@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -130,8 +131,14 @@ func (c *DatabaseConfig) GetSource() (*Source, error) {
 		}
 	}
 
-	if source.Type == "sqlite" {
+	// Normalize driver/type names
+	switch strings.ToLower(source.Type) {
+	case "sqlite":
 		source.Type = "sqlite3"
+	case "postgres", "postgresql", "pg":
+		source.Type = "pgx"
+	case "mariadb":
+		source.Type = "mysql"
 	}
 
 	return source, nil
@@ -152,11 +159,51 @@ func (c *DatabaseConfig) GetConnectionString() (string, error) {
 }
 
 func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
-	// enforce driver-level timeout for unreachable endpoints
-	if c.Driver == "pgx" {
-		// append connect_timeout if missing
-		if !strings.Contains(c.DSN, "connect_timeout") {
-			c.DSN = c.DSN + " connect_timeout=5"
+	// Normalize driver based on provided value or DSN
+	if c.DSN != "" {
+		// Infer driver from DSN scheme if not explicitly provided
+		if c.Driver == "" {
+			lower := strings.ToLower(c.DSN)
+			switch {
+			case strings.HasPrefix(lower, "postgres://") || strings.HasPrefix(lower, "postgresql://"):
+				c.Driver = "pgx"
+			case strings.HasPrefix(lower, "mysql://") || strings.HasPrefix(lower, "mariadb://"):
+				// For DSN with URL scheme, the mysql std driver expects a different format,
+				// but many connectors accept it; we still set driver appropriately.
+				c.Driver = "mysql"
+			case strings.HasPrefix(lower, "sqlite://") || strings.HasPrefix(lower, "sqlite3://"):
+				c.Driver = "sqlite3"
+			}
+		}
+		// Canonicalize driver aliases
+		switch strings.ToLower(c.Driver) {
+		case "postgres", "postgresql", "pg":
+			c.Driver = "pgx"
+		case "sqlite":
+			c.Driver = "sqlite3"
+		case "mariadb":
+			c.Driver = "mysql"
+		}
+
+		// Enforce driver-level timeout for unreachable pgx endpoints
+		if c.Driver == "pgx" && !strings.Contains(c.DSN, "connect_timeout") {
+			if strings.HasPrefix(c.DSN, "postgres://") || strings.HasPrefix(c.DSN, "postgresql://") {
+				// Append as URL query parameter
+				if u, err := url.Parse(c.DSN); err == nil {
+					q := u.Query()
+					if q.Get("connect_timeout") == "" {
+						q.Set("connect_timeout", "5")
+						u.RawQuery = q.Encode()
+						c.DSN = u.String()
+					}
+				} else {
+					// Fallback: append as key/value
+					c.DSN = c.DSN + " connect_timeout=5"
+				}
+			} else {
+				// Key/value style DSN
+				c.DSN = c.DSN + " connect_timeout=5"
+			}
 		}
 	}
 	c.LogVerbose()
