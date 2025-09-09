@@ -50,4 +50,7 @@ flags:
     type: string
     help: Database driver
     default: ""
-
+  - name: ssl-disable
+    type: bool
+    help: Disable SSL/TLS when connecting (for Postgres sets sslmode=disable)
+    default: false

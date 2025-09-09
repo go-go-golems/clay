@@ -7,6 +7,7 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 //go:embed "flags/sql-connection.yaml"
@@ -29,6 +30,7 @@ type SqlConnectionSettings struct {
 	Repository string `glazed.parameter:"repository"`
 	Dsn        string `glazed.parameter:"dsn"`
 	Driver     string `glazed.parameter:"driver"`
+	SSLDisable bool   `glazed.parameter:"ssl-disable"`
 }
 
 func NewSqlConnectionParameterLayer(
@@ -139,6 +141,7 @@ func GetConnectionStringFromSqlConnectionLayer(
 	sqlConnectionLayerName string,
 	dbtLayerName string,
 ) (string, error) {
+	log.Debug().Str("sqlConnectionLayerName", sqlConnectionLayerName).Str("dbtLayerName", dbtLayerName).Msg("Opening database from sql connection layer")
 	sqlConnectionLayer, ok := parsedLayers.Get(sqlConnectionLayerName)
 	if !ok {
 		return "", errors.New("No sql-connection layer found")

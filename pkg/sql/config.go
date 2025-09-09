@@ -26,6 +26,7 @@ type DatabaseConfig struct {
 	Type            string `glazed.parameter:"db-type"`
 	DSN             string `glazed.parameter:"dsn"`
 	Driver          string `glazed.parameter:"driver"`
+	SSLDisable      bool   `glazed.parameter:"ssl-disable"`
 	DbtProfilesPath string `glazed.parameter:"dbt-profiles-path"`
 	DbtProfile      string `glazed.parameter:"dbt-profile"`
 	UseDbtProfiles  bool   `glazed.parameter:"use-dbt-profiles"`
@@ -68,6 +69,7 @@ func (c *DatabaseConfig) LogVerbose() {
 			Int("port", c.Port).
 			Str("schema", c.Schema).
 			Str("type", c.Type).
+			Bool("ssl_disable", c.SSLDisable).
 			Msg("Using connection string")
 	}
 }
@@ -121,13 +123,14 @@ func (c *DatabaseConfig) GetSource() (*Source, error) {
 		}
 	} else {
 		source = &Source{
-			Type:     c.Type,
-			Hostname: c.Host,
-			Port:     c.Port,
-			Username: c.User,
-			Password: c.Password,
-			Database: c.Database,
-			Schema:   c.Schema,
+			Type:       c.Type,
+			Hostname:   c.Host,
+			Port:       c.Port,
+			Username:   c.User,
+			Password:   c.Password,
+			Database:   c.Database,
+			Schema:     c.Schema,
+			SSLDisable: c.SSLDisable,
 		}
 	}
 
