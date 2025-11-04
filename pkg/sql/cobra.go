@@ -3,6 +3,7 @@ package sql
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
@@ -64,11 +65,6 @@ func GetSqletonMiddlewares(
 	}
 	middlewares_ := []middlewares.Middleware{}
 
-	if commandSettings.LoadParametersFromFile != "" {
-		middlewares_ = append(middlewares_,
-			middlewares.LoadParametersFromFile(commandSettings.LoadParametersFromFile))
-	}
-
 	profileSettings := &cli.ProfileSettings{}
 	err = parsedCommandLayers.InitializeStruct(cli.ProfileSettingsSlug, profileSettings)
 	if err != nil {
@@ -106,7 +102,10 @@ func GetSqletonMiddlewares(
 				DbtSlug,
 				SqlConnectionSlug,
 			},
-			middlewares.GatherFlagsFromViper(parameters.WithParseStepSource("viper")),
+			// Load from environment using SQLETON_* prefix
+			middlewares.UpdateFromEnv(strings.ToUpper("sqleton"),
+				parameters.WithParseStepSource("env"),
+			),
 		),
 		middlewares.SetFromDefaults(parameters.WithParseStepSource("defaults")),
 	)
