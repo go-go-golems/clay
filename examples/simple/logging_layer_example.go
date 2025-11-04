@@ -78,17 +78,19 @@ The logging layer supports:
 - Various output formats (text, json)
 - File logging with rotation
 - Logstash integration for centralized logging`,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			err := logging.InitLoggerFromViper()
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			err := logging.InitLoggerFromCobra(cmd)
 			if err != nil {
 				log.Error().Msgf("Error initializing logger: %v", err)
+				return err
 			}
 			log.Debug().Msg("PersistentPreRun from main")
+			return nil
 		},
 	}
 
-	// Set up Viper and initialize logging
-	err := pkg.InitViper("logging-example", rootCmd)
+	// Initialize logging flags on the root command (no Viper)
+	err := pkg.InitGlazed("logging-example", rootCmd)
 	if err != nil {
 		fmt.Printf("Error initializing viper: %v\n", err)
 		os.Exit(1)

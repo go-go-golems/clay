@@ -6,12 +6,15 @@ import (
 	"strings"
 
 	"github.com/go-go-golems/glazed/pkg/cmds/logging"
+	"github.com/rs/zerolog/log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+// Deprecated: Use Glazed middlewares for config/env and InitGlazed for setup.
 func InitViperWithAppName(appName string, configFile string) error {
+	log.Warn().Msg("clay.InitViperWithAppName is deprecated; use Glazed middlewares and InitGlazed")
 	viper.SetEnvPrefix(appName)
 
 	if configFile != "" {
@@ -43,7 +46,9 @@ func InitViperWithAppName(appName string, configFile string) error {
 	return nil
 }
 
+// Deprecated: Use InitGlazed(appName, rootCmd) and configure middlewares via CobraParserConfig.
 func InitViper(appName string, rootCmd *cobra.Command) error {
+	log.Warn().Msg("clay.InitViper is deprecated; use InitGlazed and config middlewares")
 	err := logging.AddLoggingLayerToRootCommand(rootCmd, appName)
 	if err != nil {
 		return err
@@ -78,6 +83,7 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 	return nil
 }
 
+// Deprecated: Avoid Viper instances for config parsing; use config middlewares.
 func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Viper, error) {
 	v := viper.New()
 	v.SetEnvPrefix(appName)
@@ -109,4 +115,11 @@ func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Vip
 	v.AutomaticEnv()
 
 	return v, nil
+}
+
+// InitGlazed adds the logging layer to the root command without wiring Viper.
+// Applications should configure Glazed middlewares via CobraParserConfig (AppName, ConfigPath)
+// when building commands, and initialize logging from parsed layers.
+func InitGlazed(appName string, rootCmd *cobra.Command) error {
+	return logging.AddLoggingLayerToRootCommand(rootCmd, appName)
 }

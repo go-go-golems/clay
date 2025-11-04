@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-go-golems/clay/pkg"
+	"github.com/go-go-golems/glazed/pkg/cmds/logging"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +16,9 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "logstash-example",
 		Short: "Example application showing Logstash integration",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return logging.InitLoggerFromCobra(cmd)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Log some messages at different levels
 			log.Debug().Msg("This is a debug message")
@@ -36,8 +40,8 @@ func main() {
 		},
 	}
 
-	// Initialize Viper and set up the logging layer
-	err := pkg.InitViper("logstash-example", rootCmd)
+	// Initialize logging flags on the root command (no Viper)
+	err := pkg.InitGlazed("logstash-example", rootCmd)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error initializing configuration: %v\n", err)
 		os.Exit(1)
