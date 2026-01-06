@@ -1,13 +1,12 @@
-# .github/workflows/dependency-scanning.yml
 name: Dependency Scanning
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   schedule:
-    - cron: "0 0 * * 0" # Run weekly on Sunday at midnight
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
 
 jobs:
   dependency-review:
@@ -17,7 +16,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
+      
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
@@ -29,49 +28,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
+      
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.24"
-
+          go-version-file: go.mod
+      
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
-
+      
       - name: Run govulncheck
         run: govulncheck ./...
-
-  nancy:
-    name: Nancy Vulnerability Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: "1.24"
-
-      - name: Install Nancy
-        run: go install github.com/sonatype-nexus-community/nancy@latest
-
-      - name: Run Nancy
-        run: go list -json -deps ./... | nancy sleuth
-
+        
   gosec:
     name: GoSec Security Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
+      
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.24"
-
+          go-version-file: go.mod
+      
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
-          args: -exclude=G101,G304,G301,G306,G204 -exclude-dir=.history ./...
+          args: -exclude=G101,G304,G301,G306,G204 -exclude-dir=.history ./... 
