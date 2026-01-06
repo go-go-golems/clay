@@ -15,5 +15,6 @@
 # vendor/
 dist/
 
+.cache/
 .history
 .specstory

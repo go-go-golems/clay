@@ -88,6 +88,7 @@ func GetSqletonMiddlewares(
 			defaultProfileFile,
 			profileSettings.ProfileFile,
 			profileSettings.Profile,
+			"default",
 			parameters.WithParseStepSource("profiles"),
 			parameters.WithParseStepMetadata(map[string]interface{}{
 				"profileFile": profileSettings.ProfileFile,

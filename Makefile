@@ -4,18 +4,24 @@ all: test build
 
 VERSION=v0.1.14
 
-TAPES=$(shell ls doc/vhs/*tape)
+CACHE_DIR := $(CURDIR)/.cache
+LINT_GOCACHE := $(CACHE_DIR)/go-build
+LINT_XDG_CACHE_HOME := $(CACHE_DIR)/xdg
+
+TAPES := $(wildcard doc/vhs/*.tape)
 gifs: $(TAPES)
 	for i in $(TAPES); do vhs < $$i; done
 
 docker-lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v2.3.0 golangci-lint run -v
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v2.3.0 golangci-lint run -v ./...
 
 lint:
-	golangci-lint run -v
+	mkdir -p $(LINT_GOCACHE) $(LINT_XDG_CACHE_HOME)
+	XDG_CACHE_HOME=$(LINT_XDG_CACHE_HOME) GOCACHE=$(LINT_GOCACHE) golangci-lint run -v ./...
 
 lintmax:
-	golangci-lint run -v --max-same-issues=100
+	mkdir -p $(LINT_GOCACHE) $(LINT_XDG_CACHE_HOME)
+	XDG_CACHE_HOME=$(LINT_XDG_CACHE_HOME) GOCACHE=$(LINT_GOCACHE) golangci-lint run -v --max-same-issues=100 ./...
 
 test:
 	go test ./...
