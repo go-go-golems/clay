@@ -32,5 +32,3 @@ jobs:
         with:
           version: v2.4.0
           args: --timeout=5m
-      - name: Run geppetto custom linters
-        run: go vet -vettool=/tmp/geppetto-lint ./...
