@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/blevesearch/bleve/v2 v2.5.0
-	github.com/bmatcuk/doublestar/v4 v4.9.0
+	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-go-golems/glazed v0.7.8
