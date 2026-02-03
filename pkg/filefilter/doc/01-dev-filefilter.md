@@ -259,13 +259,13 @@ if err != nil {
 The package provides integration with Glazed for command-line applications:
 
 ```go
-layer, err := filefilter.NewFileFilterParameterLayer()
+section, err := filefilter.NewFileFilterSection()
 if err != nil {
     // Handle error
 }
 
-// Use the layer in your Glazed command
-ff, err := filefilter.CreateFileFilterFromSettings(parsedLayer)
+// Use the section in your Glazed command
+ff, err := filefilter.CreateFileFilterFromSettings(parsedSection)
 if err != nil {
     // Handle error
 }

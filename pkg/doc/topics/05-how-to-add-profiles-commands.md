@@ -139,7 +139,7 @@ Once integrated, your application will have the following subcommands under `pro
 
 While this package provides the commands to _manage_ the profiles file, your application logic needs to _read_ and _apply_ these profiles. This typically involves:
 
-1.  Adding a `--profile <name>` flag (often using `glazed/pkg/cmds/layers` or similar parameter layer mechanisms).
+1.  Adding a `--profile <name>` flag (often using `glazed/pkg/cmds/schema` or similar section mechanisms).
 2.  Loading the `profiles.yaml` file corresponding to your application name.
 3.  Reading the settings from the specified profile and the relevant layers.
 4.  Merging these profile settings with default values and other configuration sources (like environment variables or command-line flags).

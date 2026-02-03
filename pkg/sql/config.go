@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -17,19 +17,19 @@ import (
 )
 
 type DatabaseConfig struct {
-	Host            string `glazed.parameter:"host"`
-	Database        string `glazed.parameter:"database"`
-	User            string `glazed.parameter:"user"`
-	Password        string `glazed.parameter:"password"`
-	Port            int    `glazed.parameter:"port"`
-	Schema          string `glazed.parameter:"schema"`
-	Type            string `glazed.parameter:"db-type"`
-	DSN             string `glazed.parameter:"dsn"`
-	Driver          string `glazed.parameter:"driver"`
-	SSLDisable      bool   `glazed.parameter:"ssl-disable"`
-	DbtProfilesPath string `glazed.parameter:"dbt-profiles-path"`
-	DbtProfile      string `glazed.parameter:"dbt-profile"`
-	UseDbtProfiles  bool   `glazed.parameter:"use-dbt-profiles"`
+	Host            string `glazed:"host"`
+	Database        string `glazed:"database"`
+	User            string `glazed:"user"`
+	Password        string `glazed:"password"`
+	Port            int    `glazed:"port"`
+	Schema          string `glazed:"schema"`
+	Type            string `glazed:"db-type"`
+	DSN             string `glazed:"dsn"`
+	Driver          string `glazed:"driver"`
+	SSLDisable      bool   `glazed:"ssl-disable"`
+	DbtProfilesPath string `glazed:"dbt-profiles-path"`
+	DbtProfile      string `glazed:"dbt-profile"`
+	UseDbtProfiles  bool   `glazed:"use-dbt-profiles"`
 }
 
 // LogVerbose just outputs information about the database config to the
@@ -248,10 +248,10 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 	return db, err
 }
 
-func NewConfigFromParsedLayers(parsedLayers ...*layers.ParsedLayer) (*DatabaseConfig, error) {
+func NewConfigFromParsedLayers(parsedSections ...*values.SectionValues) (*DatabaseConfig, error) {
 	config := &DatabaseConfig{}
-	for _, layer := range parsedLayers {
-		err := layer.Parameters.InitializeStruct(config)
+	for _, section := range parsedSections {
+		err := section.DecodeInto(config)
 		if err != nil {
 			return nil, err
 		}

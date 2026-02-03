@@ -4,7 +4,8 @@ import (
 	"context"
 	_ "embed"
 
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
+	"github.com/go-go-golems/glazed/pkg/cmds/schema"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -14,34 +15,34 @@ import (
 var connectionFlagsYaml []byte
 
 type SqlConnectionParameterLayer struct {
-	layers.ParameterLayerImpl `yaml:",inline"`
+	schema.SectionImpl `yaml:",inline"`
 }
 
 const SqlConnectionSlug = "sql-connection"
 
 type SqlConnectionSettings struct {
-	Host       string `glazed.parameter:"host"`
-	Port       int    `glazed.parameter:"port"`
-	Database   string `glazed.parameter:"database"`
-	User       string `glazed.parameter:"user"`
-	Password   string `glazed.parameter:"password"`
-	Schema     string `glazed.parameter:"schema"`
-	DbType     string `glazed.parameter:"db-type"`
-	Repository string `glazed.parameter:"repository"`
-	Dsn        string `glazed.parameter:"dsn"`
-	Driver     string `glazed.parameter:"driver"`
-	SSLDisable bool   `glazed.parameter:"ssl-disable"`
+	Host       string `glazed:"host"`
+	Port       int    `glazed:"port"`
+	Database   string `glazed:"database"`
+	User       string `glazed:"user"`
+	Password   string `glazed:"password"`
+	Schema     string `glazed:"schema"`
+	DbType     string `glazed:"db-type"`
+	Repository string `glazed:"repository"`
+	Dsn        string `glazed:"dsn"`
+	Driver     string `glazed:"driver"`
+	SSLDisable bool   `glazed:"ssl-disable"`
 }
 
 func NewSqlConnectionParameterLayer(
-	options ...layers.ParameterLayerOptions,
+	options ...schema.SectionOption,
 ) (*SqlConnectionParameterLayer, error) {
-	layer, err := layers.NewParameterLayerFromYAML(connectionFlagsYaml, options...)
+	layer, err := schema.NewSectionFromYAML(connectionFlagsYaml, options...)
 	if err != nil {
 		return nil, err
 	}
 	ret := &SqlConnectionParameterLayer{}
-	ret.ParameterLayerImpl = *layer
+	ret.SectionImpl = *layer
 
 	return ret, nil
 }
@@ -50,53 +51,53 @@ func NewSqlConnectionParameterLayer(
 var dbtFlagsYaml []byte
 
 type DbtParameterLayer struct {
-	layers.ParameterLayerImpl `yaml:",inline"`
+	schema.SectionImpl `yaml:",inline"`
 }
 
 const DbtSlug = "dbt"
 
 type DbtSettings struct {
-	DbtProfilesPath string `glazed.parameter:"dbt-profiles-path"`
-	UseDbtProfiles  bool   `glazed.parameter:"use-dbt-profiles"`
-	DbtProfile      string `glazed.parameter:"dbt-profile"`
+	DbtProfilesPath string `glazed:"dbt-profiles-path"`
+	UseDbtProfiles  bool   `glazed:"use-dbt-profiles"`
+	DbtProfile      string `glazed:"dbt-profile"`
 }
 
 func NewDbtParameterLayer(
-	options ...layers.ParameterLayerOptions,
+	options ...schema.SectionOption,
 ) (*DbtParameterLayer, error) {
-	ret, err := layers.NewParameterLayerFromYAML(dbtFlagsYaml, options...)
+	ret, err := schema.NewSectionFromYAML(dbtFlagsYaml, options...)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to initialize dbt parameter layer")
+		return nil, errors.Wrap(err, "Failed to initialize dbt section")
 	}
 	return &DbtParameterLayer{
-		ParameterLayerImpl: *ret,
+		SectionImpl: *ret,
 	}, nil
 }
 
-type DBConnectionFactory func(ctx context.Context, parsedLayers *layers.ParsedLayers) (*sqlx.DB, error)
+type DBConnectionFactory func(ctx context.Context, parsedValues *values.Values) (*sqlx.DB, error)
 
 func OpenDatabaseFromDefaultSqlConnectionLayer(
 	ctx context.Context,
-	parsedLayers *layers.ParsedLayers,
+	parsedValues *values.Values,
 ) (*sqlx.DB, error) {
-	return OpenDatabaseFromSqlConnectionLayer(ctx, parsedLayers, SqlConnectionSlug, DbtSlug)
+	return OpenDatabaseFromSqlConnectionLayer(ctx, parsedValues, SqlConnectionSlug, DbtSlug)
 }
 
 var _ DBConnectionFactory = OpenDatabaseFromDefaultSqlConnectionLayer
 
 func OpenDatabaseFromSqlConnectionLayer(
 	ctx context.Context,
-	parsedLayers *layers.ParsedLayers,
+	parsedValues *values.Values,
 	sqlConnectionLayerName string,
 	dbtLayerName string,
 ) (*sqlx.DB, error) {
-	sqlConnectionLayer, ok := parsedLayers.Get(sqlConnectionLayerName)
+	sqlConnectionLayer, ok := parsedValues.Get(sqlConnectionLayerName)
 	if !ok {
-		return nil, errors.New("No sql-connection layer found")
+		return nil, errors.New("No sql-connection section found")
 	}
-	dbtLayer, ok := parsedLayers.Get(dbtLayerName)
+	dbtLayer, ok := parsedValues.Get(dbtLayerName)
 	if !ok {
-		return nil, errors.New("No dbt layer found")
+		return nil, errors.New("No dbt section found")
 	}
 
 	config, err2 := NewConfigFromParsedLayers(sqlConnectionLayer, dbtLayer)
@@ -106,14 +107,14 @@ func OpenDatabaseFromSqlConnectionLayer(
 	return config.Connect(ctx)
 }
 
-func NewConfigFromRawParsedLayers(parsedLayers *layers.ParsedLayers) (*DatabaseConfig, error) {
-	sqlConnectionLayer, ok := parsedLayers.Get(SqlConnectionSlug)
+func NewConfigFromRawParsedLayers(parsedValues *values.Values) (*DatabaseConfig, error) {
+	sqlConnectionLayer, ok := parsedValues.Get(SqlConnectionSlug)
 	if !ok {
-		return nil, errors.New("No sql-connection layer found")
+		return nil, errors.New("No sql-connection section found")
 	}
-	dbtLayer, ok := parsedLayers.Get(DbtSlug)
+	dbtLayer, ok := parsedValues.Get(DbtSlug)
 	if !ok {
-		return nil, errors.New("No dbt layer found")
+		return nil, errors.New("No dbt section found")
 	}
 
 	config, err := NewConfigFromParsedLayers(sqlConnectionLayer, dbtLayer)
@@ -124,10 +125,10 @@ func NewConfigFromRawParsedLayers(parsedLayers *layers.ParsedLayers) (*DatabaseC
 	return config, nil
 }
 
-// GetConnectionStringFromParsedLayers extracts a connection string from parsed layers
+// GetConnectionStringFromParsedLayers extracts a connection string from parsed values.
 // This is useful for tools like River that need a connection string directly
-func GetConnectionStringFromParsedLayers(parsedLayers *layers.ParsedLayers) (string, error) {
-	config, err := NewConfigFromRawParsedLayers(parsedLayers)
+func GetConnectionStringFromParsedLayers(parsedValues *values.Values) (string, error) {
+	config, err := NewConfigFromRawParsedLayers(parsedValues)
 	if err != nil {
 		return "", err
 	}
@@ -135,20 +136,20 @@ func GetConnectionStringFromParsedLayers(parsedLayers *layers.ParsedLayers) (str
 	return config.GetConnectionString()
 }
 
-// GetConnectionStringFromSqlConnectionLayer extracts a connection string from specific layer names
+// GetConnectionStringFromSqlConnectionLayer extracts a connection string from specific section names
 func GetConnectionStringFromSqlConnectionLayer(
-	parsedLayers *layers.ParsedLayers,
+	parsedValues *values.Values,
 	sqlConnectionLayerName string,
 	dbtLayerName string,
 ) (string, error) {
 	log.Debug().Str("sqlConnectionLayerName", sqlConnectionLayerName).Str("dbtLayerName", dbtLayerName).Msg("Opening database from sql connection layer")
-	sqlConnectionLayer, ok := parsedLayers.Get(sqlConnectionLayerName)
+	sqlConnectionLayer, ok := parsedValues.Get(sqlConnectionLayerName)
 	if !ok {
-		return "", errors.New("No sql-connection layer found")
+		return "", errors.New("No sql-connection section found")
 	}
-	dbtLayer, ok := parsedLayers.Get(dbtLayerName)
+	dbtLayer, ok := parsedValues.Get(dbtLayerName)
 	if !ok {
-		return "", errors.New("No dbt layer found")
+		return "", errors.New("No dbt section found")
 	}
 
 	config, err := NewConfigFromParsedLayers(sqlConnectionLayer, dbtLayer)

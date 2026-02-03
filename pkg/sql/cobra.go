@@ -7,9 +7,10 @@ import (
 
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
-	"github.com/go-go-golems/glazed/pkg/cmds/middlewares"
-	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
+	"github.com/go-go-golems/glazed/pkg/cmds/fields"
+	"github.com/go-go-golems/glazed/pkg/cmds/schema"
+	"github.com/go-go-golems/glazed/pkg/cmds/sources"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/go-go-golems/sqleton/pkg/flags"
 	"github.com/spf13/cobra"
 )
@@ -20,32 +21,32 @@ func BuildCobraCommandWithSqletonMiddlewares(
 ) (*cobra.Command, error) {
 	options_ := append([]cli.CobraOption{
 		cli.WithCobraMiddlewaresFunc(GetCobraCommandSqletonMiddlewares),
-		cli.WithCobraShortHelpLayers(layers.DefaultSlug, DbtSlug, SqlConnectionSlug, flags.SqlHelpersSlug),
-		cli.WithCreateCommandSettingsLayer(),
-		cli.WithProfileSettingsLayer(),
+		cli.WithCobraShortHelpSections(schema.DefaultSlug, DbtSlug, SqlConnectionSlug, flags.SqlHelpersSlug),
+		cli.WithCreateCommandSettingsSection(),
+		cli.WithProfileSettingsSection(),
 	}, options...)
 
 	return cli.BuildCobraCommandFromCommand(cmd, options_...)
 }
 
 func GetCobraCommandSqletonMiddlewares(
-	parsedCommandLayers *layers.ParsedLayers,
+	parsedCommandValues *values.Values,
 	cmd *cobra.Command,
 	args []string,
-) ([]middlewares.Middleware, error) {
+) ([]sources.Middleware, error) {
 
 	// Start with cobra-specific middlewares
-	middlewares_ := []middlewares.Middleware{
-		middlewares.ParseFromCobraCommand(cmd,
-			parameters.WithParseStepSource("cobra"),
+	middlewares_ := []sources.Middleware{
+		sources.FromCobra(cmd,
+			fields.WithSource("cobra"),
 		),
-		middlewares.GatherArguments(args,
-			parameters.WithParseStepSource("arguments"),
+		sources.FromArgs(args,
+			fields.WithSource("arguments"),
 		),
 	}
 
 	// Get the common sqleton middlewares
-	additionalMiddlewares, err := GetSqletonMiddlewares(parsedCommandLayers)
+	additionalMiddlewares, err := GetSqletonMiddlewares(parsedCommandValues)
 	if err != nil {
 		return nil, err
 	}
@@ -56,17 +57,17 @@ func GetCobraCommandSqletonMiddlewares(
 
 // GetSqletonMiddlewares returns the common middleware chain used by sqleton commands
 func GetSqletonMiddlewares(
-	parsedCommandLayers *layers.ParsedLayers,
-) ([]middlewares.Middleware, error) {
+	parsedCommandValues *values.Values,
+) ([]sources.Middleware, error) {
 	commandSettings := &cli.CommandSettings{}
-	err := parsedCommandLayers.InitializeStruct(cli.CommandSettingsSlug, commandSettings)
+	err := parsedCommandValues.DecodeSectionInto(cli.CommandSettingsSlug, commandSettings)
 	if err != nil {
 		return nil, err
 	}
-	middlewares_ := []middlewares.Middleware{}
+	middlewares_ := []sources.Middleware{}
 
 	profileSettings := &cli.ProfileSettings{}
-	err = parsedCommandLayers.InitializeStruct(cli.ProfileSettingsSlug, profileSettings)
+	err = parsedCommandValues.DecodeSectionInto(cli.ProfileSettingsSlug, profileSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +85,13 @@ func GetSqletonMiddlewares(
 		profileSettings.Profile = "default"
 	}
 	middlewares_ = append(middlewares_,
-		middlewares.GatherFlagsFromProfiles(
+		sources.GatherFlagsFromProfiles(
 			defaultProfileFile,
 			profileSettings.ProfileFile,
 			profileSettings.Profile,
 			"default",
-			parameters.WithParseStepSource("profiles"),
-			parameters.WithParseStepMetadata(map[string]interface{}{
+			fields.WithSource("profiles"),
+			fields.WithMetadata(map[string]interface{}{
 				"profileFile": profileSettings.ProfileFile,
 				"profile":     profileSettings.Profile,
 			}),
@@ -98,17 +99,17 @@ func GetSqletonMiddlewares(
 	)
 
 	middlewares_ = append(middlewares_,
-		middlewares.WrapWithWhitelistedLayers(
+		sources.WrapWithWhitelistedSections(
 			[]string{
 				DbtSlug,
 				SqlConnectionSlug,
 			},
 			// Load from environment using SQLETON_* prefix
-			middlewares.UpdateFromEnv(strings.ToUpper("sqleton"),
-				parameters.WithParseStepSource("env"),
+			sources.FromEnv(strings.ToUpper("sqleton"),
+				fields.WithSource("env"),
 			),
 		),
-		middlewares.SetFromDefaults(parameters.WithParseStepSource("defaults")),
+		sources.FromDefaults(fields.WithSource(fields.SourceDefaults)),
 	)
 
 	return middlewares_, nil

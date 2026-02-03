@@ -1,8 +1,9 @@
 package builder
 
 import (
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
-	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
+	"github.com/go-go-golems/glazed/pkg/cmds/fields"
+	"github.com/go-go-golems/glazed/pkg/cmds/schema"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -10,103 +11,103 @@ import (
 // FilterSettings contains all the filter parameters used by the list command.
 // These correspond to the filter methods provided by the Builder.
 type FilterSettings struct {
-	Type          string   `glazed.parameter:"type" help:"Filter by command type"`
-	Types         []string `glazed.parameter:"types" help:"Filter by multiple types (OR)"`
-	Tag           string   `glazed.parameter:"tag" help:"Filter by single tag"`
-	Tags          []string `glazed.parameter:"tags" help:"Filter by any of multiple tags (OR)"`
-	AllTags       []string `glazed.parameter:"all-tags" help:"Must have all specified tags (AND)"`
-	AnyTags       []string `glazed.parameter:"any-tags" help:"Must have any of specified tags (OR) (alias for --tags)"`
-	Path          string   `glazed.parameter:"path" help:"Exact path match (e.g., 'queries es')"`
-	PathGlob      string   `glazed.parameter:"path-glob" help:"Path glob pattern (e.g., 'queries/*')"`
-	PathPrefix    string   `glazed.parameter:"path-prefix" help:"Path prefix match (e.g., 'queries/')"`
-	Name          string   `glazed.parameter:"name" help:"Exact command name match (last part of path)"`
-	NamePattern   string   `glazed.parameter:"name-pattern" help:"Command name pattern match (e.g., 'list*')"`
-	MetadataKey   string   `glazed.parameter:"metadata-key" help:"Metadata key to match"`
-	MetadataValue string   `glazed.parameter:"metadata-value" help:"Metadata value to match (requires --metadata-key)"`
+	Type          string   `glazed:"type" help:"Filter by command type"`
+	Types         []string `glazed:"types" help:"Filter by multiple types (OR)"`
+	Tag           string   `glazed:"tag" help:"Filter by single tag"`
+	Tags          []string `glazed:"tags" help:"Filter by any of multiple tags (OR)"`
+	AllTags       []string `glazed:"all-tags" help:"Must have all specified tags (AND)"`
+	AnyTags       []string `glazed:"any-tags" help:"Must have any of specified tags (OR) (alias for --tags)"`
+	Path          string   `glazed:"path" help:"Exact path match (e.g., 'queries es')"`
+	PathGlob      string   `glazed:"path-glob" help:"Path glob pattern (e.g., 'queries/*')"`
+	PathPrefix    string   `glazed:"path-prefix" help:"Path prefix match (e.g., 'queries/')"`
+	Name          string   `glazed:"name" help:"Exact command name match (last part of path)"`
+	NamePattern   string   `glazed:"name-pattern" help:"Command name pattern match (e.g., 'list*')"`
+	MetadataKey   string   `glazed:"metadata-key" help:"Metadata key to match"`
+	MetadataValue string   `glazed:"metadata-value" help:"Metadata value to match (requires --metadata-key)"`
 }
 
-// FilterLayerSlug is the slug for the filter parameter layer.
-const FilterLayerSlug = "filter"
+// FilterSectionSlug is the slug for the filter section.
+const FilterSectionSlug = "filter"
 
-// NewFilterParameterLayer creates a new parameter layer for command filtering.
-func NewFilterParameterLayer(options ...layers.ParameterLayerOptions) (layers.ParameterLayer, error) {
-	return layers.NewParameterLayer(FilterLayerSlug, "Command Filtering Options",
-		append([]layers.ParameterLayerOptions{
-			layers.WithParameterDefinitions(
-				parameters.NewParameterDefinition(
+// NewFilterSection creates a new section for command filtering.
+func NewFilterSection(options ...schema.SectionOption) (schema.Section, error) {
+	return schema.NewSection(FilterSectionSlug, "Command Filtering Options",
+		append([]schema.SectionOption{
+			schema.WithFields(
+				fields.New(
 					"type",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Filter by command type"),
+					fields.TypeString,
+					fields.WithHelp("Filter by command type"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"types",
-					parameters.ParameterTypeStringList,
-					parameters.WithHelp("Filter by multiple types (OR)"),
+					fields.TypeStringList,
+					fields.WithHelp("Filter by multiple types (OR)"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"tag",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Filter by single tag"),
+					fields.TypeString,
+					fields.WithHelp("Filter by single tag"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"tags",
-					parameters.ParameterTypeStringList,
-					parameters.WithHelp("Filter by any of multiple tags (OR)"),
+					fields.TypeStringList,
+					fields.WithHelp("Filter by any of multiple tags (OR)"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"all-tags",
-					parameters.ParameterTypeStringList,
-					parameters.WithHelp("Must have all specified tags (AND)"),
+					fields.TypeStringList,
+					fields.WithHelp("Must have all specified tags (AND)"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"any-tags",
-					parameters.ParameterTypeStringList,
-					parameters.WithHelp("Must have any of specified tags (OR) (alias for --tags)"),
+					fields.TypeStringList,
+					fields.WithHelp("Must have any of specified tags (OR) (alias for --tags)"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"path",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Exact path match (e.g., 'queries es')"),
+					fields.TypeString,
+					fields.WithHelp("Exact path match (e.g., 'queries es')"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"path-glob",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Path glob pattern (e.g., 'queries/*')"),
+					fields.TypeString,
+					fields.WithHelp("Path glob pattern (e.g., 'queries/*')"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"path-prefix",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Path prefix match (e.g., 'queries/')"),
+					fields.TypeString,
+					fields.WithHelp("Path prefix match (e.g., 'queries/')"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"name",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Exact command name match (last part of path)"),
+					fields.TypeString,
+					fields.WithHelp("Exact command name match (last part of path)"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"name-pattern",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Command name pattern match (e.g., 'list*')"),
+					fields.TypeString,
+					fields.WithHelp("Command name pattern match (e.g., 'list*')"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"metadata-key",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Metadata key to match"),
+					fields.TypeString,
+					fields.WithHelp("Metadata key to match"),
 				),
-				parameters.NewParameterDefinition(
+				fields.New(
 					"metadata-value",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Metadata value to match (requires --metadata-key)"),
+					fields.TypeString,
+					fields.WithHelp("Metadata value to match (requires --metadata-key)"),
 				),
 			),
 		}, options...)...,
 	)
 }
 
-// GetFilterSettingsFromParsedLayers extracts filter settings from parsed layers.
-func GetFilterSettingsFromParsedLayers(parsedLayers *layers.ParsedLayers) (*FilterSettings, error) {
+// GetFilterSettingsFromParsedValues extracts filter settings from parsed values.
+func GetFilterSettingsFromParsedValues(parsedValues *values.Values) (*FilterSettings, error) {
 	s := &FilterSettings{}
-	err := parsedLayers.InitializeStruct(FilterLayerSlug, s)
+	err := parsedValues.DecodeSectionInto(FilterSectionSlug, s)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize filter settings")
 	}

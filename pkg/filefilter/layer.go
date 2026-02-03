@@ -5,112 +5,113 @@ import (
 	"os"
 
 	"github.com/denormal/go-gitignore"
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
-	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
+	"github.com/go-go-golems/glazed/pkg/cmds/fields"
+	"github.com/go-go-golems/glazed/pkg/cmds/schema"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 )
 
 type FileFilterSettings struct {
-	MaxFileSize           int64    `glazed.parameter:"max-file-size"`
-	DisableGitIgnore      bool     `glazed.parameter:"disable-gitignore"`
-	DisableDefaultFilters bool     `glazed.parameter:"disable-default-filters"`
-	Include               []string `glazed.parameter:"include"`
-	Exclude               []string `glazed.parameter:"exclude"`
-	MatchFilename         []string `glazed.parameter:"match-filename"`
-	MatchPath             []string `glazed.parameter:"match-path"`
-	ExcludeDirs           []string `glazed.parameter:"exclude-dirs"`
-	ExcludeMatchFilename  []string `glazed.parameter:"exclude-match-filename"`
-	ExcludeMatchPath      []string `glazed.parameter:"exclude-match-path"`
-	FilterBinary          bool     `glazed.parameter:"filter-binary"`
-	Verbose               bool     `glazed.parameter:"verbose"`
+	MaxFileSize           int64    `glazed:"max-file-size"`
+	DisableGitIgnore      bool     `glazed:"disable-gitignore"`
+	DisableDefaultFilters bool     `glazed:"disable-default-filters"`
+	Include               []string `glazed:"include"`
+	Exclude               []string `glazed:"exclude"`
+	MatchFilename         []string `glazed:"match-filename"`
+	MatchPath             []string `glazed:"match-path"`
+	ExcludeDirs           []string `glazed:"exclude-dirs"`
+	ExcludeMatchFilename  []string `glazed:"exclude-match-filename"`
+	ExcludeMatchPath      []string `glazed:"exclude-match-path"`
+	FilterBinary          bool     `glazed:"filter-binary"`
+	Verbose               bool     `glazed:"verbose"`
 }
 
 const FileFilterSlug = "file-filter"
 
-func NewFileFilterParameterLayer() (layers.ParameterLayer, error) {
-	return layers.NewParameterLayer(
+func NewFileFilterSection() (schema.Section, error) {
+	return schema.NewSection(
 		FileFilterSlug,
 		"File Filter Options",
-		layers.WithParameterDefinitions(
-			parameters.NewParameterDefinition(
+		schema.WithFields(
+			fields.New(
 				"max-file-size",
-				parameters.ParameterTypeInteger,
-				parameters.WithHelp("Maximum size of individual files in bytes"),
-				parameters.WithDefault(int64(1024*1024)),
+				fields.TypeInteger,
+				fields.WithHelp("Maximum size of individual files in bytes"),
+				fields.WithDefault(int64(1024*1024)),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"disable-gitignore",
-				parameters.ParameterTypeBool,
-				parameters.WithHelp("Disable .gitignore filter"),
-				parameters.WithDefault(false),
+				fields.TypeBool,
+				fields.WithHelp("Disable .gitignore filter"),
+				fields.WithDefault(false),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"disable-default-filters",
-				parameters.ParameterTypeBool,
-				parameters.WithHelp("Disable default file and directory filters"),
-				parameters.WithDefault(false),
+				fields.TypeBool,
+				fields.WithHelp("Disable default file and directory filters"),
+				fields.WithDefault(false),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"include",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of file extensions to include (e.g., .go,.js)"),
-				parameters.WithShortFlag("i"),
+				fields.TypeStringList,
+				fields.WithHelp("List of file extensions to include (e.g., .go,.js)"),
+				fields.WithShortFlag("i"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"exclude",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of file extensions to exclude (e.g., .exe,.dll)"),
-				parameters.WithShortFlag("e"),
+				fields.TypeStringList,
+				fields.WithHelp("List of file extensions to exclude (e.g., .exe,.dll)"),
+				fields.WithShortFlag("e"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"match-filename",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of regular expressions to match filenames"),
-				parameters.WithShortFlag("f"),
+				fields.TypeStringList,
+				fields.WithHelp("List of regular expressions to match filenames"),
+				fields.WithShortFlag("f"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"match-path",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of regular expressions to match full paths"),
-				parameters.WithShortFlag("p"),
+				fields.TypeStringList,
+				fields.WithHelp("List of regular expressions to match full paths"),
+				fields.WithShortFlag("p"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"exclude-dirs",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of directories to exclude"),
-				parameters.WithShortFlag("x"),
+				fields.TypeStringList,
+				fields.WithHelp("List of directories to exclude"),
+				fields.WithShortFlag("x"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"exclude-match-filename",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of regular expressions to exclude matching filenames"),
-				parameters.WithShortFlag("F"),
+				fields.TypeStringList,
+				fields.WithHelp("List of regular expressions to exclude matching filenames"),
+				fields.WithShortFlag("F"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"exclude-match-path",
-				parameters.ParameterTypeStringList,
-				parameters.WithHelp("List of regular expressions to exclude matching full paths"),
-				parameters.WithShortFlag("P"),
+				fields.TypeStringList,
+				fields.WithHelp("List of regular expressions to exclude matching full paths"),
+				fields.WithShortFlag("P"),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"filter-binary",
-				parameters.ParameterTypeBool,
-				parameters.WithHelp("Filter out binary files"),
-				parameters.WithDefault(true),
+				fields.TypeBool,
+				fields.WithHelp("Filter out binary files"),
+				fields.WithDefault(true),
 			),
-			parameters.NewParameterDefinition(
+			fields.New(
 				"verbose",
-				parameters.ParameterTypeBool,
-				parameters.WithHelp("Enable verbose logging of filtered/unfiltered paths"),
-				parameters.WithDefault(false),
-				parameters.WithShortFlag("v"),
+				fields.TypeBool,
+				fields.WithHelp("Enable verbose logging of filtered/unfiltered paths"),
+				fields.WithDefault(false),
+				fields.WithShortFlag("v"),
 			),
 		),
 	)
 }
 
-func CreateFileFilterFromSettings(parsedLayer *layers.ParsedLayer) (*FileFilter, error) {
+func CreateFileFilterFromSettings(parsedSection *values.SectionValues) (*FileFilter, error) {
 	s := &FileFilterSettings{}
-	err := parsedLayer.InitializeStruct(s)
+	err := parsedSection.DecodeInto(s)
 	if err != nil {
 		return nil, err
 	}

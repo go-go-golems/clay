@@ -8,8 +8,8 @@ import (
 	"github.com/go-go-golems/clay/pkg"
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
 	"github.com/go-go-golems/glazed/pkg/cmds/logging"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/go-go-golems/glazed/pkg/middlewares"
 	"github.com/go-go-golems/glazed/pkg/settings"
 	"github.com/rs/zerolog/log"
@@ -29,7 +29,7 @@ func (c *ExampleCommand) Description() *cmds.CommandDescription {
 
 func (c *ExampleCommand) RunIntoGlazeProcessor(
 	ctx context.Context,
-	parsedLayers *layers.ParsedLayers,
+	parsedValues *values.Values,
 	gp middlewares.Processor,
 ) error {
 	// Log some information to show different log levels
@@ -46,7 +46,7 @@ func (c *ExampleCommand) RunIntoGlazeProcessor(
 
 // NewExampleCommand creates a new example command
 func NewExampleCommand() (*ExampleCommand, error) {
-	glazedParameterLayer, err := settings.NewGlazedParameterLayers()
+	glazedSection, err := settings.NewGlazedSection()
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func NewExampleCommand() (*ExampleCommand, error) {
 			cmds.WithShort("Example command showing logging layer usage"),
 			cmds.WithLong("This command demonstrates how to use the logging layer in a Glazed command. "+
 				"It supports various logging formats, levels, and outputs including file and Logstash integration."),
-			cmds.WithLayersList(glazedParameterLayer),
+			cmds.WithSections(glazedSection),
 		),
 	}
 
@@ -129,7 +129,7 @@ The logging layer supports:
 	// Build the Cobra command with short help for the logging layer
 	anotherCobraCmd, err := cli.BuildCobraCommandFromCommand(
 		anotherExampleCmd,
-		cli.WithCobraShortHelpLayers("logging"),
+		cli.WithCobraShortHelpSections("logging"),
 	)
 	if err != nil {
 		fmt.Printf("Error building another cobra command: %v\n", err)
