@@ -8,7 +8,6 @@ require (
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-go-golems/glazed v0.7.8
-	github.com/go-go-golems/sqleton v0.3.4
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.8.0

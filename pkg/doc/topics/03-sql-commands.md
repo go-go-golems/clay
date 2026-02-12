@@ -8,7 +8,8 @@ Topics:
   - templating
   - parameters
 Commands:
-  - BuildCobraCommandWithSqletonMiddlewares
+  - OpenDatabaseFromDefaultSqlConnectionLayer
+  - OpenDatabaseFromSqlConnectionLayer
 Flags:
   - sql-connection
   - dbt
@@ -368,7 +369,7 @@ The SQL package provides detailed error messages for common issues:
 
 ## Integration with Cobra
 
-The SQL package integrates with Cobra for CLI applications:
+The SQL package integrates with Cobra for CLI applications via the generic Glazed Cobra builder:
 
 ```go
 package main
@@ -379,7 +380,7 @@ import (
     "github.com/go-go-golems/glazed/pkg/cmds/schema"
 )
 
-cobraCmd, err := sql.BuildCobraCommandWithSqletonMiddlewares(
+cobraCmd, err := cli.BuildCobraCommandFromCommand(
     sqlCmd,
     cli.WithCobraShortHelpSections(
         schema.DefaultSlug,

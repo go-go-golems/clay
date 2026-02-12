@@ -114,8 +114,6 @@ github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/go-go-golems/glazed v0.7.8 h1:ngxi53jMFK2Xkocvak3E503Xhsy5/VN+WK6gqgibOVM=
 github.com/go-go-golems/glazed v0.7.8/go.mod h1:cXsGNGxBFjzoRjMQcJqiMQyC0GCOKeVuOWSPDmOlLEA=
-github.com/go-go-golems/sqleton v0.3.4 h1:9n6aI6zT9/hXKx8tJfn75IFSHd/DLADaIPXRznHEv3s=
-github.com/go-go-golems/sqleton v0.3.4/go.mod h1:ksEmq+pWKuak/Imi9E8l5q2hGYEPQVhCYxi1tEFpH28=
 github.com/go-openapi/errors v0.22.0 h1:c4xY/OLxUBSTiepAg3j/MHuAv5mJhnf53LLMWFB+u/w=
 github.com/go-openapi/errors v0.22.0/go.mod h1:J3DmZScxCDufmIMsdOuDHxJbdOGC0xtUynjIx092vXE=
 github.com/go-openapi/strfmt v0.23.0 h1:nlUS6BCqcnAk0pyhi9Y+kdDVZdZMHfEKQiS4HaMgO/c=
