@@ -99,7 +99,7 @@ func (c *EditCommand) Run(ctx context.Context, parsedValues *values.Values) erro
 		}
 	}
 
-	// #nosec G204 -- User intends to run their configured editor on a path derived from command metadata
+	// #nosec G204,G702 -- User intends to run their configured editor on a validated local source path.
 	cmd := exec.CommandContext(ctx, editor, absFilePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

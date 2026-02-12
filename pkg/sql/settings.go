@@ -25,7 +25,7 @@ type SqlConnectionSettings struct {
 	Port       int    `glazed:"port"`
 	Database   string `glazed:"database"`
 	User       string `glazed:"user"`
-	Password   string `glazed:"password"`
+	Password   string `glazed:"password"` // #nosec G117 -- Password is a required connection setting.
 	Schema     string `glazed:"schema"`
 	DbType     string `glazed:"db-type"`
 	Repository string `glazed:"repository"`

@@ -20,7 +20,7 @@ type DatabaseConfig struct {
 	Host            string `glazed:"host"`
 	Database        string `glazed:"database"`
 	User            string `glazed:"user"`
-	Password        string `glazed:"password"`
+	Password        string `glazed:"password"` // #nosec G117 -- Password is part of the DB config model.
 	Port            int    `glazed:"port"`
 	Schema          string `glazed:"schema"`
 	Type            string `glazed:"db-type"`

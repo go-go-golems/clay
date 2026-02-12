@@ -14,7 +14,7 @@ type Source struct {
 	Hostname   string `yaml:"server"`
 	Port       int    `yaml:"port"`
 	Username   string `yaml:"username"`
-	Password   string `yaml:"password"`
+	Password   string `yaml:"password"` // #nosec G117 -- This struct intentionally models database credentials.
 	Schema     string `yaml:"schema"`
 	Database   string `yaml:"database"`
 	SSLDisable bool   `yaml:"ssl_disable"`
