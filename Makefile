@@ -40,7 +40,7 @@ tag-patch:
 	git tag $(shell svu patch)
 
 release:
-	git push --tags
+	git push --tags origin
 	GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/clay@$(shell svu current)
 
 bump-glazed:
