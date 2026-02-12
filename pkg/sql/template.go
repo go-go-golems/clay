@@ -7,7 +7,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
+	"github.com/go-go-golems/glazed/pkg/cmds/fields"
 	"github.com/go-go-golems/glazed/pkg/helpers/cast"
 	"github.com/go-go-golems/glazed/pkg/helpers/templating"
 	"github.com/jmoiron/sqlx"
@@ -70,7 +70,7 @@ func sqlIntIn(values interface{}) string {
 func sqlDate_(date interface{}, fullFormat string, defaultFormat string) (string, error) {
 	switch v := date.(type) {
 	case string:
-		parsedDate, err := parameters.ParseDate(v)
+		parsedDate, err := fields.ParseDate(v)
 		if err != nil {
 			return "", err
 		}

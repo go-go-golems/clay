@@ -63,7 +63,7 @@ func NewCommandManagementCommandGroup(
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edit command")
 	}
-	editCobraCmd, err := cli.BuildCobraCommandFromBareCommand(editCmd)
+	editCobraCmd, err := cli.BuildCobraCommand(editCmd)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build edit cobra command")
 	}

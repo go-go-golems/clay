@@ -49,7 +49,7 @@ func InitViperWithAppName(appName string, configFile string) error {
 // Deprecated: Use InitGlazed(appName, rootCmd) and configure middlewares via CobraParserConfig.
 func InitViper(appName string, rootCmd *cobra.Command) error {
 	log.Warn().Msg("clay.InitViper is deprecated; use InitGlazed and config middlewares")
-	err := logging.AddLoggingLayerToRootCommand(rootCmd, appName)
+	err := logging.AddLoggingSectionToRootCommand(rootCmd, appName)
 	if err != nil {
 		return err
 	}
@@ -117,9 +117,9 @@ func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Vip
 	return v, nil
 }
 
-// InitGlazed adds the logging layer to the root command without wiring Viper.
+// InitGlazed adds the logging section to the root command without wiring Viper.
 // Applications should configure Glazed middlewares via CobraParserConfig (AppName, ConfigPath)
-// when building commands, and initialize logging from parsed layers.
+// when building commands, and initialize logging from parsed values.
 func InitGlazed(appName string, rootCmd *cobra.Command) error {
-	return logging.AddLoggingLayerToRootCommand(rootCmd, appName)
+	return logging.AddLoggingSectionToRootCommand(rootCmd, appName)
 }

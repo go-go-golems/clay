@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	glazed_cmds "github.com/go-go-golems/glazed/pkg/cmds"
-	"github.com/go-go-golems/glazed/pkg/cmds/layers"
-	"github.com/go-go-golems/glazed/pkg/cmds/parameters"
+	"github.com/go-go-golems/glazed/pkg/cmds/fields"
+	"github.com/go-go-golems/glazed/pkg/cmds/schema"
+	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/pkg/errors"
 )
 
@@ -24,7 +25,7 @@ var _ glazed_cmds.BareCommand = (*EditCommand)(nil)
 
 // EditCommandSettings holds the arguments for the edit command.
 type EditCommandSettings struct {
-	CommandPath string `glazed.parameter:"command-path"`
+	CommandPath string `glazed:"command-path"`
 }
 
 // newEditCommand creates a new EditCommand.
@@ -35,11 +36,11 @@ func newEditCommand(allCommands []glazed_cmds.Command) (*EditCommand, error) {
 			"edit",
 			glazed_cmds.WithShort("Edit the source file of a command"),
 			glazed_cmds.WithArguments(
-				parameters.NewParameterDefinition(
+				fields.New(
 					"command-path",
-					parameters.ParameterTypeString,
-					parameters.WithHelp("Full path of the command to edit (e.g., 'query es')"),
-					parameters.WithRequired(true),
+					fields.TypeString,
+					fields.WithHelp("Full path of the command to edit (e.g., 'query es')"),
+					fields.WithRequired(true),
 				),
 			),
 		),
@@ -47,9 +48,9 @@ func newEditCommand(allCommands []glazed_cmds.Command) (*EditCommand, error) {
 }
 
 // Run executes the edit command.
-func (c *EditCommand) Run(ctx context.Context, parsedLayers *layers.ParsedLayers) error {
+func (c *EditCommand) Run(ctx context.Context, parsedValues *values.Values) error {
 	s := &EditCommandSettings{}
-	if err := parsedLayers.InitializeStruct(layers.DefaultSlug, s); err != nil {
+	if err := parsedValues.DecodeSectionInto(schema.DefaultSlug, s); err != nil {
 		return errors.Wrap(err, "failed to initialize settings")
 	}
 
@@ -98,7 +99,7 @@ func (c *EditCommand) Run(ctx context.Context, parsedLayers *layers.ParsedLayers
 		}
 	}
 
-	// #nosec G204 -- User intends to run their configured editor on a path derived from command metadata
+	// #nosec G204,G702 -- User intends to run their configured editor on a validated local source path.
 	cmd := exec.CommandContext(ctx, editor, absFilePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

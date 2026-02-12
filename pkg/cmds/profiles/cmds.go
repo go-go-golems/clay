@@ -313,6 +313,7 @@ func newEditCommand(appName string) *cobra.Command {
 
 			log.Debug().Str("editor", editorCmd).Str("path", profilesPath).Msg("Opening editor")
 
+			// #nosec G204,G702 -- User explicitly chooses editor via $EDITOR; path is an app-managed local file.
 			editCmd := exec.Command(editorCmd, profilesPath)
 			editCmd.Stdin = os.Stdin
 			editCmd.Stdout = os.Stdout

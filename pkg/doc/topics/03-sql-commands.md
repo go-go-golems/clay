@@ -8,7 +8,8 @@ Topics:
   - templating
   - parameters
 Commands:
-  - BuildCobraCommandWithSqletonMiddlewares
+  - OpenDatabaseFromDefaultSqlConnectionLayer
+  - OpenDatabaseFromSqlConnectionLayer
 Flags:
   - sql-connection
   - dbt
@@ -111,9 +112,9 @@ The following parameter types are supported:
   - `choice`: Single selection from predefined options
   - `choiceList`: Multiple selections from predefined options
 
-## SQL Parameter Layers
+## SQL Sections
 
-The SQL implementation uses several parameter layers to organize and manage different aspects of SQL queries:
+The SQL implementation uses several sections to organize and manage different aspects of SQL queries:
 
 ### Connection Layer
 The SQL connection layer manages database connection parameters through the `SqlConnectionSettings` struct:
@@ -122,20 +123,20 @@ The SQL connection layer manages database connection parameters through the `Sql
 import "github.com/go-go-golems/clay/pkg/sql"
 
 type sql.SqlConnectionSettings struct {
-    Host       string `glazed.parameter:"host"`
-    Port       int    `glazed.parameter:"port"`
-    Database   string `glazed.parameter:"database"`
-    User       string `glazed.parameter:"user"`
-    Password   string `glazed.parameter:"password"`
-    Schema     string `glazed.parameter:"schema"`
-    DbType     string `glazed.parameter:"db-type"`
-    Repository string `glazed.parameter:"repository"`
-    Dsn        string `glazed.parameter:"dsn"`
-    Driver     string `glazed.parameter:"driver"`
+    Host       string `glazed:"host"`
+    Port       int    `glazed:"port"`
+    Database   string `glazed:"database"`
+    User       string `glazed:"user"`
+    Password   string `glazed:"password"`
+    Schema     string `glazed:"schema"`
+    DbType     string `glazed:"db-type"`
+    Repository string `glazed:"repository"`
+    Dsn        string `glazed:"dsn"`
+    Driver     string `glazed:"driver"`
 }
 ```
 
-Create a new SQL connection layer:
+Create a new SQL connection section:
 
 ```go
 layer, err := sql.NewSqlConnectionParameterLayer()
@@ -149,13 +150,13 @@ The DBT layer manages dbt-specific configurations through the `DbtSettings` stru
 
 ```go
 type sql.DbtSettings struct {
-    DbtProfilesPath string `glazed.parameter:"dbt-profiles-path"`
-    UseDbtProfiles  bool   `glazed.parameter:"use-dbt-profiles"`
-    DbtProfile      string `glazed.parameter:"dbt-profile"`
+    DbtProfilesPath string `glazed:"dbt-profiles-path"`
+    UseDbtProfiles  bool   `glazed:"use-dbt-profiles"`
+    DbtProfile      string `glazed:"dbt-profile"`
 }
 ```
 
-Create a new DBT layer:
+Create a new DBT section:
 
 ```go
 layer, err := sql.NewDbtParameterLayer()
@@ -166,11 +167,11 @@ if err != nil {
 
 ### Opening Database Connections
 
-Clay provides convenient functions to open database connections using the parsed layers:
+Clay provides convenient functions to open database connections using the parsed values:
 
 1. Using the default layers:
 ```go
-db, err := sql.OpenDatabaseFromDefaultSqlConnectionLayer(parsedLayers)
+db, err := sql.OpenDatabaseFromDefaultSqlConnectionLayer(ctx, parsedValues)
 if err != nil {
     // Handle error
 }
@@ -179,7 +180,8 @@ if err != nil {
 2. Using custom layer names:
 ```go
 db, err := sql.OpenDatabaseFromSqlConnectionLayer(
-    parsedLayers,
+    ctx,
+    parsedValues,
     "custom-sql-connection-layer",
     "custom-dbt-layer",
 )
@@ -191,11 +193,11 @@ if err != nil {
 You can also create a custom database connection factory:
 
 ```go
-type sql.DBConnectionFactory func(parsedLayers *layers.ParsedLayers) (*sqlx.DB, error)
+type sql.DBConnectionFactory func(ctx context.Context, parsedValues *values.Values) (*sqlx.DB, error)
 
 // Example usage:
 var connectionFactory sql.DBConnectionFactory = sql.OpenDatabaseFromDefaultSqlConnectionLayer
-db, err := connectionFactory(parsedLayers)
+db, err := connectionFactory(ctx, parsedValues)
 ```
 
 ## Query Definition and Templating
@@ -367,7 +369,7 @@ The SQL package provides detailed error messages for common issues:
 
 ## Integration with Cobra
 
-The SQL package integrates with Cobra for CLI applications:
+The SQL package integrates with Cobra for CLI applications via the generic Glazed Cobra builder:
 
 ```go
 package main
@@ -375,13 +377,13 @@ package main
 import (
     "github.com/go-go-golems/clay/pkg/sql"
     "github.com/go-go-golems/glazed/pkg/cli"
-    "github.com/go-go-golems/glazed/pkg/cmds/layers"
+    "github.com/go-go-golems/glazed/pkg/cmds/schema"
 )
 
-cobraCmd, err := sql.BuildCobraCommandWithSqletonMiddlewares(
+cobraCmd, err := cli.BuildCobraCommandFromCommand(
     sqlCmd,
-    cli.WithCobraShortHelpLayers(
-        layers.DefaultSlug,
+    cli.WithCobraShortHelpSections(
+        schema.DefaultSlug,
         sql.DbtSlug,
         sql.SqlConnectionSlug,
     ),
