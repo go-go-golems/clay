@@ -18,7 +18,7 @@
   - Add YAML decoding for the app config file
   - Add environment merge logic for `SQLETON_REPOSITORIES`
   - Add normalization/helpers for repository path collection
-- [ ] Phase 3: Remove Viper from sqleton startup
+- [x] Phase 3: Remove Viper from sqleton startup
   - Replace `clay.InitViper("sqleton", rootCmd)` with `clay.InitGlazed("sqleton", rootCmd)`
   - Remove direct `github.com/spf13/viper` import from `sqleton/cmd/sqleton/main.go`
   - Remove `viper.GetStringSlice("repositories")` usage

@@ -145,3 +145,52 @@ Doing the app-owned loader first isolates the migration:
 - repository discovery can move off Viper cleanly
 - existing startup still works during the transition
 - later failures in `main.go` or Cobra config parsing can be debugged separately from config-file parsing itself
+
+## 2026-04-02 19:10 Phase 3 Startup Cutover
+
+### Goal
+
+Remove Viper from actual sqleton startup now that the replacement loader exists.
+
+### Code changes
+
+In `sqleton/cmd/sqleton/main.go` I changed two ownership points:
+
+- `initRootCmd()` now uses `clay.InitGlazed("sqleton", rootCmd)`
+- `initAllCommands()` now gets repository paths from `collectRepositoryPaths("sqleton")`
+
+I also removed the direct `github.com/spf13/viper` import entirely.
+
+### Why this is a distinct checkpoint
+
+This is the point where the app actually stops depending on Viper for startup/config discovery.
+
+I deliberately did **not** change the Cobra parser configuration yet. The command builder and repository loader still use:
+
+- `cli.WithParserConfig(cli.CobraParserConfig{AppName: "sqleton"})`
+
+That means the remaining work is now clearly narrowed to command-section config ownership rather than startup ownership.
+
+### Validation for this checkpoint
+
+Commands run:
+
+```bash
+go test ./sqleton/cmd/sqleton -run 'TestLoadAppConfigFromPath|TestRepositoriesFromEnv|TestCollectRepositoryPathsMergesConfigAndEnv|Test(SQLiteSmoke|ConfiguredRepositoryDiscoverySmoke)' -count=1
+go test ./sqleton/... -count=1
+```
+
+Both passed.
+
+### Current state after Phase 3
+
+What is fixed:
+
+- no Viper initialization in sqleton startup
+- no `viper.GetStringSlice("repositories")`
+- repository discovery is app-owned
+
+What is still intentionally unresolved:
+
+- the default Glazed `AppName: "sqleton"` parser behavior is still present
+- top-level app config and command section config are not yet fully separated

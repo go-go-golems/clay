@@ -9,3 +9,6 @@
 - Implemented an app-owned `sqleton` config loader with direct YAML decoding and `SQLETON_REPOSITORIES` environment merging
 - Added focused tests for empty config, YAML config loading, environment repository parsing, and config-plus-environment merging
 - Verified the existing SQLite and configured-repository smoke tests still pass before any startup migration
+- Replaced `clay.InitViper("sqleton", ...)` with `clay.InitGlazed("sqleton", ...)`
+- Removed direct `viper.GetStringSlice("repositories")` usage from `sqleton` startup and switched repository discovery to the app-owned config loader
+- Verified the `sqleton/...` test tree still passes after the Viper removal
