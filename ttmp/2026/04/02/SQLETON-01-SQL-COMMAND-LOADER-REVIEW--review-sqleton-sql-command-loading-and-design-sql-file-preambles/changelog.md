@@ -2,6 +2,10 @@
 
 ## 2026-04-02
 
+- Added a SQLite-backed CLI smoke test in `sqleton/cmd/sqleton/main_test.go` that creates a temporary database, runs `sqleton query`, and runs `sqleton run-command` against a temporary `.sql` command file
+- Verified `go test ./sqleton/...` passes with the new smoke coverage
+- Recorded that `run-command` currently requires a `--` separator before dynamic command flags so Cobra does not try to parse them as `run-command` flags
+
 - Re-ran `docmgr doctor --ticket SQLETON-01-SQL-COMMAND-LOADER-REVIEW --stale-after 30` after the implementation work and the ticket still passed cleanly
 - Uploaded the refreshed bundle to reMarkable as `SQLETON-01 SQL Command Loader Review - Implemented Cleanup` in `/ai/2026/04/02/SQLETON-01-SQL-COMMAND-LOADER-REVIEW`
 - Verified the reMarkable directory now contains the original report, the explicit-aliases revision, and the implemented-cleanup revision

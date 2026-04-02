@@ -733,3 +733,45 @@ remarquee cloud ls /ai/2026/04/02/SQLETON-01-SQL-COMMAND-LOADER-REVIEW --long --
   - `SQLETON-01 SQL Command Loader Review - Explicit Aliases`
   - `SQLETON-01 SQL Command Loader Review - Implemented Cleanup`
 - The only intentionally open task left in the ticket is the addition of more targeted parser/loader/repository/CLI tests. The main implementation, migration, documentation, validation, and delivery steps are complete.
+
+## 2026-04-02 15:05 SQLite CLI Smoke Test
+
+### Goal
+
+Add a real smoke test that creates a SQLite database and runs the `sqleton` CLI against it, so the test exercises the packaged Cobra app and not just the lower-level `SqlCommand` implementation.
+
+### What I changed
+
+- Added `sqleton/cmd/sqleton/main_test.go`.
+- Implemented a subprocess-based CLI test harness that re-executes the compiled Go test binary instead of shelling out to `go run`.
+- Created a temporary SQLite database on disk with a simple `widgets` table and seed rows.
+- Added two smoke paths:
+  - `sqleton query --db-type sqlite --database ... --output json "SELECT ..."`
+  - `sqleton run-command <temp.sql> -- --db-type sqlite --database ... --output json --only-active`
+- Generated the temporary SQL command file with `sqleton/pkg/cmds.MarshalSpecToSQLFile(...)` so the test uses the real `.sql` preamble format.
+
+### What I learned
+
+- `run-command` does not accept forwarded dynamic command flags directly after the file path. Cobra tries to parse them as flags on `run-command` itself.
+- The stable invocation pattern is:
+
+```bash
+sqleton run-command path/to/command.sql -- --db-type sqlite --database ./test.db --output json
+```
+
+- That behavior is worth keeping in mind for both docs and future CLI cleanup. The smoke test now codifies the current contract.
+
+### Validation
+
+- Ran:
+
+```bash
+go test ./sqleton/cmd/sqleton -run TestSQLiteSmoke -v
+go test ./sqleton/...
+```
+
+- Both passed.
+
+### Related
+
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/cmd/sqleton/main_test.go`
