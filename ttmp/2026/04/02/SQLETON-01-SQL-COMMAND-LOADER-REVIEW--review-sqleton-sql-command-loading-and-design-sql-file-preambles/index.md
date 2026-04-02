@@ -1,7 +1,7 @@
 ---
 Title: Review sqleton SQL command loading and design SQL-file preambles
 Ticket: SQLETON-01-SQL-COMMAND-LOADER-REVIEW
-Status: active
+Status: complete
 Topics:
     - backend
 DocType: index
@@ -10,10 +10,11 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: Review ticket covering the original sqleton SQL command loading architecture, the SQL-file-with-preamble redesign, and the implemented cleanup work that migrated sqleton to `.sql` commands and explicit `.alias.yaml` aliases.
-LastUpdated: 2026-04-02T14:54:53-04:00
+LastUpdated: 2026-04-02T17:00:48.710361145-04:00
 WhatFor: Review how sqleton loaded YAML-backed SQL commands, assess the design quality, define a cleaner SQL-file-with-preamble format, and record the implemented migration and cleanup plan.
 WhenToUse: Use this ticket when refactoring sqleton command loading, onboarding an engineer to the clay/sqleton SQL command path, or deciding whether to replace YAML query files with SQL-first sources.
 ---
+
 
 # Review sqleton SQL command loading and design SQL-file preambles
 
@@ -34,7 +35,7 @@ The intended audience is a new engineer or intern who has never worked with this
 
 ## Status
 
-Current status: **active**
+Current status: **complete**
 
 ## Topics
 

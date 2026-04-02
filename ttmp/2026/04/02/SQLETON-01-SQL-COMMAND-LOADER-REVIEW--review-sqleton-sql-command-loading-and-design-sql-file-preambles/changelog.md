@@ -2,6 +2,9 @@
 
 ## 2026-04-02
 
+- Added repository discovery smoke coverage for configured repositories and alias execution
+- Created follow-up ticket `SQLETON-02-VIPER-APP-CONFIG-CLEANUP` for the remaining startup/config cleanup work
+
 - Added a second CLI smoke test that exercises repository discovery through configured repository paths using `SQLETON_REPOSITORIES`
 - The repository smoke test now proves that a discovered `.sql` command and a discovered `.alias.yaml` alias both execute successfully against a temporary SQLite database
 - Fixed alias resolution in `clay/pkg/repositories/repository.go` so repository-loaded aliases resolve `aliasFor` against the actual command path instead of the parent prefix alone
@@ -53,3 +56,8 @@ Added the current-state sqleton loader review and the SQL-file preamble design g
 
 - /home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/go-go-goja/pkg/jsverbs/scan.go — Frontmatter parsing model used as inspiration for the proposed SQL preamble design
 - /home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/pkg/cmds/loaders.go — Current sqleton loader behavior analyzed in the ticket
+
+## 2026-04-02
+
+Implementation complete. SQL command loader cleanup delivered; remaining startup/config cleanup moved to SQLETON-02-VIPER-APP-CONFIG-CLEANUP.
+

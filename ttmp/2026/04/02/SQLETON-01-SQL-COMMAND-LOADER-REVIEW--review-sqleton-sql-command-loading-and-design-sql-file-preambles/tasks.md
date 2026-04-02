@@ -26,7 +26,7 @@
   Commit: `603eca5`
 - [x] Update sqleton docs for `.sql` commands and explicit alias filenames
   Commit: `603eca5`
-- [ ] Add targeted parser / loader / repository / CLI tests
+- [x] Add targeted parser / loader / repository / CLI smoke tests
 - [x] Run validation tests and fix failures
   Commits: `f3c8e23`, `603eca5`
 - [x] Commit the core loader refactor
