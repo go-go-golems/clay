@@ -67,3 +67,81 @@ The requested direction is:
 - design/implementation guide
 - this diary
 
+## 2026-04-02 18:05 Phase 1 and 2 Implementation
+
+### Goal
+
+Start the implementation with the lowest-risk part of the refactor:
+
+- freeze the non-goals and migration decisions in the task list
+- add an app-owned sqleton config loader before changing startup wiring
+
+### Decisions carried into implementation
+
+I kept the user-requested constraints unchanged:
+
+- no backward compatibility layer
+- keep `run-command ... -- ...` forwarding behavior as-is
+- keep alias overrides in Cobra flag spelling
+- remove Viper directly rather than introducing adapters
+
+### Code changes
+
+I added a new config helper in `sqleton/cmd/sqleton/config.go` with:
+
+- `AppConfig`
+- `loadAppConfig(appName string)`
+- `loadAppConfigFromPath(configPath string)`
+- `collectRepositoryPaths(appName string)`
+- `repositoriesFromEnv()`
+- `normalizeRepositoryPaths(...)`
+
+The helper is intentionally narrow. It only owns app-level repository discovery state:
+
+- read the standard config path via `glazed/pkg/config.ResolveAppConfigPath`
+- decode YAML directly
+- extract `repositories`
+- merge `SQLETON_REPOSITORIES`
+- trim empty values and deduplicate while preserving order
+
+This keeps the new loader independent from Cobra parser middleware, which will be addressed in the next phase.
+
+### Tests added
+
+I added `sqleton/cmd/sqleton/config_test.go` to cover:
+
+- empty config path
+- YAML config decoding
+- `SQLETON_REPOSITORIES` parsing with path-list splitting
+- merged config-file plus environment repositories
+
+### One test issue found and fixed
+
+The first test run failed because I used `t.Setenv(...)` inside tests marked `t.Parallel()`.
+
+Go rejects that combination with:
+
+```text
+panic: testing: test using t.Setenv, t.Chdir, or cryptotest.SetGlobalRandom can not use t.Parallel
+```
+
+I fixed that by removing `t.Parallel()` from the environment-dependent tests. No production code change was needed.
+
+### Validation for this checkpoint
+
+Commands run:
+
+```bash
+go test ./sqleton/cmd/sqleton -run 'TestLoadAppConfigFromPath|TestRepositoriesFromEnv|TestCollectRepositoryPathsMergesConfigAndEnv' -count=1
+go test ./sqleton/cmd/sqleton -run 'Test(SQLiteSmoke|ConfiguredRepositoryDiscoverySmoke)' -count=1
+```
+
+Both passed after the test fix.
+
+### Why this order matters
+
+Doing the app-owned loader first isolates the migration:
+
+- repository discovery can move off Viper cleanly
+- existing startup still works during the transition
+- later failures in `main.go` or Cobra config parsing can be debugged separately from config-file parsing itself
