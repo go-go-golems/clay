@@ -2,6 +2,12 @@
 
 ## 2026-04-02
 
+- Added a second CLI smoke test that exercises repository discovery through configured repository paths using `SQLETON_REPOSITORIES`
+- The repository smoke test now proves that a discovered `.sql` command and a discovered `.alias.yaml` alias both execute successfully against a temporary SQLite database
+- Fixed alias resolution in `clay/pkg/repositories/repository.go` so repository-loaded aliases resolve `aliasFor` against the actual command path instead of the parent prefix alone
+- Fixed alias resolution in `glazed/pkg/cli/cobra.go` so runnable Cobra aliases also resolve `parents + aliasFor` instead of just `parents`
+- Verified `go test ./sqleton/...`, `go test ./clay/pkg/repositories/...`, and `go test ./glazed/pkg/cli/...`
+
 - Added a SQLite-backed CLI smoke test in `sqleton/cmd/sqleton/main_test.go` that creates a temporary database, runs `sqleton query`, and runs `sqleton run-command` against a temporary `.sql` command file
 - Verified `go test ./sqleton/...` passes with the new smoke coverage
 - Recorded that `run-command` currently requires a `--` separator before dynamic command flags so Cobra does not try to parse them as `run-command` flags

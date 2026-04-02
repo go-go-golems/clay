@@ -775,3 +775,55 @@ go test ./sqleton/...
 ### Related
 
 - `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/cmd/sqleton/main_test.go`
+
+## 2026-04-02 16:15 Repository Discovery Smoke Test
+
+### Goal
+
+Extend the smoke coverage from direct-file execution to repository discovery, so `sqleton` is tested with commands loaded through its configured repository mechanism instead of only through `run-command`.
+
+### What I changed
+
+- Extended `sqleton/cmd/sqleton/main_test.go` with `TestConfiguredRepositoryDiscoverySmoke`.
+- The new smoke test:
+  - creates a temporary repository directory,
+  - writes a `.sql` command file into it,
+  - writes a `.alias.yaml` alias file into it,
+  - exposes that repository to `sqleton` via `SQLETON_REPOSITORIES`,
+  - runs the discovered SQL command against a temporary SQLite database,
+  - runs the discovered alias against the same database.
+
+### Bugs the test exposed
+
+The first failing version of the test uncovered two real alias-resolution bugs:
+
+1. In `clay/pkg/repositories/repository.go`, repository alias resolution was looking up `FindCommand(prefix)` instead of `FindCommand(prefix + aliasFor)`.
+2. In `glazed/pkg/cli/cobra.go`, Cobra alias construction was also looking up aliases by parent path alone instead of the aliased command path.
+
+Without those fixes, repository-loaded aliases could be present on disk but still fail to become runnable commands.
+
+### Additional behavior captured by the test
+
+- Repository discovery works cleanly through `SQLETON_REPOSITORIES` for the current implementation.
+- The top-level `repositories:` config-file path still has a separate compatibility problem with the Glazed config middleware, because the middleware expects section maps while `repositories` is a top-level sequence. I did not broaden this change to solve that separate config-format mismatch.
+- Alias override flags need the Cobra CLI flag spelling (`only-active`), not the raw field name (`only_active`).
+- A templated boolean field that is omitted entirely can surface as `<no value>` in the rendered SQL. The smoke test therefore passes `--only-active=false` explicitly for the non-alias repository command path.
+
+### Validation
+
+- Ran:
+
+```bash
+go test ./sqleton/cmd/sqleton -run 'Test(SQLiteSmoke|ConfiguredRepositoryDiscoverySmoke)' -v
+go test ./sqleton/...
+go test ./clay/pkg/repositories/...
+go test ./glazed/pkg/cli/...
+```
+
+- All passed.
+
+### Related
+
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/cmd/sqleton/main_test.go`
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/clay/pkg/repositories/repository.go`
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/glazed/pkg/cli/cobra.go`
