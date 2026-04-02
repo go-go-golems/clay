@@ -2,6 +2,9 @@
 
 ## 2026-04-02
 
+- Defaulted optional boolean SQL command flags to `false` during `SqlCommandSpec` compilation
+- Added focused compiler tests for optional bool defaults and removed the explicit `--only-active=false` workaround from the repository discovery smoke test
+
 - Added repository discovery smoke coverage for configured repositories and alias execution
 - Created follow-up ticket `SQLETON-02-VIPER-APP-CONFIG-CLEANUP` for the remaining startup/config cleanup work
 
@@ -60,4 +63,3 @@ Added the current-state sqleton loader review and the SQL-file preamble design g
 ## 2026-04-02
 
 Implementation complete. SQL command loader cleanup delivered; remaining startup/config cleanup moved to SQLETON-02-VIPER-APP-CONFIG-CLEANUP.
-

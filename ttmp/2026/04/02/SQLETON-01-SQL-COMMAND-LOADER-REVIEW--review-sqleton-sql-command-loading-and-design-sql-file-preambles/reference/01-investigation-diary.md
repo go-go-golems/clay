@@ -827,3 +827,45 @@ go test ./glazed/pkg/cli/...
 - `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/cmd/sqleton/main_test.go`
 - `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/clay/pkg/repositories/repository.go`
 - `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/glazed/pkg/cli/cobra.go`
+
+## 2026-04-02 17:20 Optional Bool Defaults
+
+### Goal
+
+Finish the remaining SQL command usability cleanup by making optional boolean flags behave like normal CLI booleans when omitted in SQL templates.
+
+### What I changed
+
+- Updated `sqleton/pkg/cmds/spec.go` so `SqlCommandSpec` compilation now clones flag definitions and applies `default: false` to optional boolean flags that do not already have an explicit default.
+- Added `sqleton/pkg/cmds/spec_test.go` with focused tests proving:
+  - optional bool flags get default `false`
+  - explicit bool defaults are preserved
+  - required bool flags do not get an implicit default
+- Updated the repository discovery smoke test in `sqleton/cmd/sqleton/main_test.go` to remove the explicit `--only-active=false` workaround from the discovered SQL command path.
+
+### Why this was the right insertion point
+
+I considered two places:
+
+1. render-time coercion in the SQL template path
+2. compile-time normalization in `SqlCommandSpec -> SqlCommand`
+
+Compile-time normalization is cleaner because the command schema, help/defaults, and runtime behavior all agree on the same value. It also avoids making SQL rendering do hidden data synthesis.
+
+### Validation
+
+- Ran:
+
+```bash
+go test ./sqleton/pkg/cmds -run 'TestCompile|TestSimpleRun' -v
+go test ./sqleton/cmd/sqleton -run 'Test(SQLiteSmoke|ConfiguredRepositoryDiscoverySmoke)' -v
+go test ./sqleton/...
+```
+
+- All passed.
+
+### Related
+
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/pkg/cmds/spec.go`
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/pkg/cmds/spec_test.go`
+- `/home/manuel/workspaces/2026-04-02/add-sql-based-sql-commands/sqleton/cmd/sqleton/main_test.go`
