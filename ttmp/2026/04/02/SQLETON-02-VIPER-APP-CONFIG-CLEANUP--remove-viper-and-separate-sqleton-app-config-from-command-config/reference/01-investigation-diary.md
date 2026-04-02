@@ -194,3 +194,130 @@ What is still intentionally unresolved:
 
 - the default Glazed `AppName: "sqleton"` parser behavior is still present
 - top-level app config and command section config are not yet fully separated
+
+## 2026-04-02 19:35 Phase 4, 5, 6, and 7 Parser Separation
+
+### Goal
+
+Finish the cleanup by making sqleton own command-config discovery explicitly, while preserving:
+
+- `SQLETON_*` environment loading
+- existing command help wiring
+- explicit `--config-file` behavior for command settings
+
+### Design choice taken
+
+I used the "explicit command config only" direction from the design doc.
+
+That means:
+
+- app config file: owns `repositories`
+- command config files: only loaded when the user explicitly requests them through `command-settings.config-file`
+
+I did **not** use a config-file mapper that filters the app config file. That would still couple app config and command config to the same physical file, which was the main design smell this ticket was meant to remove.
+
+### Code changes
+
+I added `sqleton/cmd/sqleton/cmds/parser.go` with:
+
+- `SqletonAppName`
+- `NewSqletonParserConfig()`
+- `resolveSqletonCommandConfigFiles(...)`
+
+The parser config now does two deliberate things:
+
+- keep `AppName: "sqleton"` so environment parsing still uses the `SQLETON_` prefix
+- override `ConfigFilesFunc` so config files are loaded only from explicit `--config-file`
+
+I then switched all sqleton parser creation points to use this helper:
+
+- `buildSqletonCobraCommand(...)` in `sqleton/cmd/sqleton/main.go`
+- repository loading in `sqleton/cmd/sqleton/main.go`
+- database flag parsing in `sqleton/cmd/sqleton/cmds/db.go`
+
+### Remaining Viper cleanup found during this phase
+
+While reviewing the remaining parser/config ownership, I found that `sqleton/cmd/sqleton/cmds/db.go` still used `viper.GetBool(...)` and `viper.GetString(...)` inside `db ls`.
+
+Those were no longer necessary because the DBT settings are already part of the parsed command config model.
+
+I refactored `db.go` to:
+
+- add `parseConfigFromCobra(cmd)`
+- reuse the parsed `DatabaseConfig` in `db ls`
+- remove the remaining direct `viper` dependency
+
+After that change, `rg -n "viper" sqleton/cmd/sqleton sqleton/pkg -S` returned no matches.
+
+### Tests added
+
+I added two important CLI smoke tests in `sqleton/cmd/sqleton/main_test.go`:
+
+1. `TestConfiguredRepositoryDiscoveryFromConfigFileSmoke`
+
+- writes `~/.sqleton/config.yaml` with:
+
+```yaml
+repositories:
+  - /tmp/.../repo
+```
+
+- verifies repository discovery works with no `SQLETON_REPOSITORIES` env var
+
+This is the direct regression test for the old config collision.
+
+2. `TestRunCommandExplicitConfigFileSmoke`
+
+- writes an explicit command config file containing:
+
+```yaml
+sql-connection:
+  db-type: sqlite
+  database: /tmp/.../smoke.db
+```
+
+- verifies `sqleton run-command ... -- --config-file ...` still loads command section config correctly
+
+This proves the new separation does not break normal config-file driven command execution.
+
+### One implementation mistake found and fixed
+
+The first compile after introducing `NewSqletonParserConfig()` failed with:
+
+```text
+invalid operation: cannot take address of cli.CobraParserConfig(NewSqletonParserConfig()) (value of struct type cli.CobraParserConfig)
+```
+
+Cause:
+
+- I tried to take the address of a temporary converted struct literal in `db.go`
+
+Fix:
+
+- bind the parser config to a local variable first, then pass `&parserConfig`
+
+### Validation for the completed implementation
+
+Commands run during this phase:
+
+```bash
+go test ./sqleton/cmd/sqleton -run 'Test(ConfiguredRepositoryDiscoveryFromConfigFileSmoke|RunCommandExplicitConfigFileSmoke|ConfiguredRepositoryDiscoverySmoke|SQLiteSmoke)' -count=1
+go test ./sqleton/... -count=1
+rg -n "viper" sqleton/cmd/sqleton sqleton/pkg -S
+```
+
+Results:
+
+- both test commands passed
+- the `rg` search returned no direct `viper` references in sqleton code
+
+### Final technical state before ticket closeout
+
+The ticket objective is now satisfied:
+
+- sqleton startup does not use Viper
+- repository discovery is app-owned
+- app config and command section config are separated
+- command config loading is explicit
+- `repositories:` no longer breaks normal command parsing
+- no direct Viper dependency remains in sqleton code under active scope

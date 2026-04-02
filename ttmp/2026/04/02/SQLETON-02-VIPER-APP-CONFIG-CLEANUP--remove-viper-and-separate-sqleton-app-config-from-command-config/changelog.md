@@ -12,3 +12,7 @@
 - Replaced `clay.InitViper("sqleton", ...)` with `clay.InitGlazed("sqleton", ...)`
 - Removed direct `viper.GetStringSlice("repositories")` usage from `sqleton` startup and switched repository discovery to the app-owned config loader
 - Verified the `sqleton/...` test tree still passes after the Viper removal
+- Added an sqleton-owned parser config helper so command config files are only loaded from explicit `--config-file`
+- Added smoke coverage for repository discovery from `~/.sqleton/config.yaml` and for explicit `--config-file` command config loading
+- Removed the remaining direct `viper` reads from `sqleton/cmd/sqleton/cmds/db.go`
+- Verified there are no direct `viper` references left in `sqleton/cmd/sqleton` or `sqleton/pkg`

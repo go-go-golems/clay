@@ -23,24 +23,24 @@
   - Remove direct `github.com/spf13/viper` import from `sqleton/cmd/sqleton/main.go`
   - Remove `viper.GetStringSlice("repositories")` usage
   - Keep root logging/help setup behavior intact
-- [ ] Phase 4: Introduce sqleton-owned Cobra parser configuration
+- [x] Phase 4: Introduce sqleton-owned Cobra parser configuration
   - Stop relying on default `AppName: "sqleton"` config loading blindly
   - Add an sqleton-specific parser helper or middleware builder
   - Make command config loading explicit instead of implicit through global app config
   - Keep short-help sections and existing command wiring behavior unchanged
-- [ ] Phase 5: Separate app config from command section config
+- [x] Phase 5: Separate app config from command section config
   - Decide and implement whether command section config comes from:
     - explicit command config only, or
     - filtered app config via a mapper
   - Ensure top-level `repositories:` no longer collides with section-config parsing
   - Ensure `sql-connection`, `dbt`, and command settings still parse correctly
-- [ ] Phase 6: Add tests for the new config ownership model
+- [x] Phase 6: Add tests for the new config ownership model
   - Unit test app config loading with no config file present
   - Unit test app config loading from `config.yaml`
   - Unit test `SQLETON_REPOSITORIES` merge/override behavior
   - CLI smoke test repository discovery through config file
   - Regression test normal command section config loading still works
-- [ ] Phase 7: Validation
+- [x] Phase 7: Validation
   - Run `go test ./sqleton/...`
   - Run any affected `clay` / `glazed` package tests if helper code changes cross repo boundaries
   - Re-run repository discovery smoke tests
