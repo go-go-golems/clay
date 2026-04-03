@@ -1,7 +1,7 @@
 ---
 Title: Remove Viper and separate sqleton app config from command config
 Ticket: SQLETON-02-VIPER-APP-CONFIG-CLEANUP
-Status: active
+Status: complete
 Topics:
     - backend
 DocType: index
@@ -10,9 +10,9 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: Analysis and implementation plan for removing Viper from sqleton, separating app-level config from command-section config, and aligning sqleton with the non-Viper startup pattern already used in pinocchio.
-LastUpdated: 2026-04-02T16:58:13.174284484-04:00
-WhatFor: Plan a no-backwards-compat cleanup that removes `clay.InitViper(...)` from sqleton and prevents the current `repositories:` config collision between app config and Glazed section config.
-WhenToUse: Use this ticket when implementing or reviewing sqleton startup/config cleanup, replacing Viper-based repository discovery, or aligning sqleton with the app-owned config pattern used by pinocchio.
+LastUpdated: 2026-04-02T19:12:00-04:00
+WhatFor: Record the completed no-backwards-compat cleanup that removed direct Viper usage from sqleton and separated app config from command section config.
+WhenToUse: Use this ticket when reviewing sqleton's new app-owned config model, understanding why `repositories:` no longer collides with command config parsing, or tracing the Viper-removal implementation.
 ---
 
 # Remove Viper and separate sqleton app config from command config
@@ -31,11 +31,12 @@ The target state is intentionally not backward-compatible. The goal is a cleaner
 
 - Design doc: `design/01-sqleton-viper-removal-and-app-config-cleanup-design.md`
 - Diary: `reference/01-investigation-diary.md`
+- Full-day synthesis report: `reference/02-sqleton-full-day-cleanup-project-report.md`
 - Related files: see frontmatter `RelatedFiles`
 
 ## Status
 
-Current status: **active**
+Current status: **complete**
 
 ## Topics
 

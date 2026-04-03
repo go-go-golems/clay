@@ -321,3 +321,38 @@ The ticket objective is now satisfied:
 - command config loading is explicit
 - `repositories:` no longer breaks normal command parsing
 - no direct Viper dependency remains in sqleton code under active scope
+
+## 2026-04-02 19:32 Cross-ticket synthesis note
+
+### Goal
+
+The implementation and ticket docs were already complete, but the work done on 2026-04-02 spanned two connected tickets:
+
+- the SQL command loader cleanup ticket
+- this Viper/app-config cleanup ticket
+
+The Obsidian vault received a project-style technical report summarizing the whole day. I mirrored that report back into the ticket docs so the ticket workspace itself contains the durable cross-ticket write-up.
+
+### Deliverable added
+
+Added:
+
+- `reference/02-sqleton-full-day-cleanup-project-report.md`
+
+This document intentionally sits in the Viper-cleanup ticket because it is the later/final ticket in the sequence, but its scope explicitly covers both:
+
+- `SQLETON-01-SQL-COMMAND-LOADER-REVIEW`
+- `SQLETON-02-VIPER-APP-CONFIG-CLEANUP`
+
+### Why this matters
+
+Without this synthesis note, the ticket docs are strong at the per-ticket level but weaker as a single narrative for the full day’s work.
+
+The new report captures:
+
+- the command-loader design problems
+- the move to `.sql` commands and explicit aliases
+- the smoke-test strategy
+- the optional-bool defaulting cleanup
+- the Viper/app-config separation
+- the final technical shape of sqleton after both tickets

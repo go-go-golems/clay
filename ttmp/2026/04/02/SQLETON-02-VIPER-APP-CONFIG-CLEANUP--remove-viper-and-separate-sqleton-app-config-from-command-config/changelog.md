@@ -16,3 +16,4 @@
 - Added smoke coverage for repository discovery from `~/.sqleton/config.yaml` and for explicit `--config-file` command config loading
 - Removed the remaining direct `viper` reads from `sqleton/cmd/sqleton/cmds/db.go`
 - Verified there are no direct `viper` references left in `sqleton/cmd/sqleton` or `sqleton/pkg`
+- Added a cross-ticket full-day project report to the ticket docs, mirroring the Obsidian project note and summarizing the entire 2026-04-02 sqleton cleanup from SQL loader redesign through Viper removal
