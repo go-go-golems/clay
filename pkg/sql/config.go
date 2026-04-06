@@ -11,6 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -142,6 +143,8 @@ func (c *DatabaseConfig) GetSource() (*Source, error) {
 		source.Type = "pgx"
 	case "mariadb":
 		source.Type = "mysql"
+	case "duckdb", "duck":
+		source.Type = "duckdb"
 	}
 
 	return source, nil
@@ -161,6 +164,33 @@ func (c *DatabaseConfig) GetConnectionString() (string, error) {
 	return s.ToConnectionString(), nil
 }
 
+func normalizeDuckDBDSN(dsn string) (string, error) {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "", errors.Wrap(err, "parse duckdb dsn")
+	}
+
+	path := ""
+	switch {
+	case u.Host != "" && u.Path != "":
+		path = u.Host + u.Path
+	case u.Host != "":
+		path = u.Host
+	default:
+		path = u.Path
+	}
+
+	if path == "/:memory:" {
+		path = ":memory:"
+	}
+
+	if u.RawQuery != "" {
+		return path + "?" + u.RawQuery, nil
+	}
+
+	return path, nil
+}
+
 func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 	// Normalize driver based on provided value or DSN
 	if c.DSN != "" {
@@ -176,6 +206,8 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 				c.Driver = "mysql"
 			case strings.HasPrefix(lower, "sqlite://") || strings.HasPrefix(lower, "sqlite3://"):
 				c.Driver = "sqlite3"
+			case strings.HasPrefix(lower, "duckdb://"):
+				c.Driver = "duckdb"
 			}
 		}
 		// Canonicalize driver aliases
@@ -186,6 +218,16 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 			c.Driver = "sqlite3"
 		case "mariadb":
 			c.Driver = "mysql"
+		case "duckdb", "duck":
+			c.Driver = "duckdb"
+		}
+
+		if c.Driver == "duckdb" && strings.HasPrefix(strings.ToLower(c.DSN), "duckdb://") {
+			normalizedDSN, err := normalizeDuckDBDSN(c.DSN)
+			if err != nil {
+				return nil, err
+			}
+			c.DSN = normalizedDSN
 		}
 
 		// Enforce driver-level timeout for unreachable pgx endpoints
