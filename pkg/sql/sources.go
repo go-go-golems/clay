@@ -34,6 +34,8 @@ func (s *Source) ToConnectionString() string {
 		fallthrough
 	case "sqlite3":
 		return s.Database
+	case "duckdb":
+		return s.Database
 	default:
 		return ""
 	}

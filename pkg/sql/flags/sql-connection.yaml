@@ -35,7 +35,7 @@ flags:
     shortFlag: s
   - name: db-type
     type: string
-    help: Database type (mysql, pgx, etc.)
+    help: "Database type (mysql, pgx, sqlite3, duckdb)"
     default: mysql
     shortFlag: t
   - name: repository

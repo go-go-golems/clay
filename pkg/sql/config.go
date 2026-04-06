@@ -11,6 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/marcboeker/go-duckdb"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -142,6 +143,8 @@ func (c *DatabaseConfig) GetSource() (*Source, error) {
 		source.Type = "pgx"
 	case "mariadb":
 		source.Type = "mysql"
+	case "duckdb", "duck":
+		source.Type = "duckdb"
 	}
 
 	return source, nil
@@ -176,6 +179,8 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 				c.Driver = "mysql"
 			case strings.HasPrefix(lower, "sqlite://") || strings.HasPrefix(lower, "sqlite3://"):
 				c.Driver = "sqlite3"
+			case strings.HasPrefix(lower, "duckdb://"):
+				c.Driver = "duckdb"
 			}
 		}
 		// Canonicalize driver aliases
@@ -186,6 +191,8 @@ func (c *DatabaseConfig) Connect(ctx context.Context) (*sqlx.DB, error) {
 			c.Driver = "sqlite3"
 		case "mariadb":
 			c.Driver = "mysql"
+		case "duckdb", "duck":
+			c.Driver = "duckdb"
 		}
 
 		// Enforce driver-level timeout for unreachable pgx endpoints
