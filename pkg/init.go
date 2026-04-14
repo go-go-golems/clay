@@ -75,7 +75,7 @@ func InitViper(appName string, rootCmd *cobra.Command) error {
 		return err
 	}
 
-	err = logging.InitLoggerFromViper()
+	err = logging.InitEarlyLoggingFromArgs(os.Args[1:], appName)
 	if err != nil {
 		return err
 	}
@@ -118,8 +118,8 @@ func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Vip
 }
 
 // InitGlazed adds the logging section to the root command without wiring Viper.
-// Applications should configure Glazed middlewares via CobraParserConfig (AppName, ConfigPath)
-// when building commands, and initialize logging from parsed values.
+// Applications should configure Glazed middlewares via CobraParserConfig (AppName and explicit
+// config plans) when building commands, and initialize logging from parsed values.
 func InitGlazed(appName string, rootCmd *cobra.Command) error {
 	return logging.AddLoggingSectionToRootCommand(rootCmd, appName)
 }
