@@ -46,43 +46,6 @@ func InitViperWithAppName(appName string, configFile string) error {
 	return nil
 }
 
-// Deprecated: Use InitGlazed(appName, rootCmd) and configure middlewares via CobraParserConfig.
-func InitViper(appName string, rootCmd *cobra.Command) error {
-	log.Warn().Msg("clay.InitViper is deprecated; use InitGlazed and config middlewares")
-	err := logging.AddLoggingSectionToRootCommand(rootCmd, appName)
-	if err != nil {
-		return err
-	}
-
-	// parse the flags one time just to catch --config
-	configFile := ""
-	for idx, arg := range os.Args {
-		if arg == "--config" {
-			if len(os.Args) > idx+1 {
-				configFile = os.Args[idx+1]
-			}
-		}
-	}
-
-	err = InitViperWithAppName(appName, configFile)
-	if err != nil {
-		return err
-	}
-
-	// Bind the variables to the command-line flags
-	err = viper.BindPFlags(rootCmd.PersistentFlags())
-	if err != nil {
-		return err
-	}
-
-	err = logging.InitLoggerFromViper()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Deprecated: Avoid Viper instances for config parsing; use config middlewares.
 func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Viper, error) {
 	v := viper.New()
@@ -118,8 +81,8 @@ func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Vip
 }
 
 // InitGlazed adds the logging section to the root command without wiring Viper.
-// Applications should configure Glazed middlewares via CobraParserConfig (AppName, ConfigPath)
-// when building commands, and initialize logging from parsed values.
+// Applications should configure Glazed middlewares via CobraParserConfig (AppName and explicit
+// config plans) when building commands, and initialize logging from parsed values.
 func InitGlazed(appName string, rootCmd *cobra.Command) error {
 	return logging.AddLoggingSectionToRootCommand(rootCmd, appName)
 }

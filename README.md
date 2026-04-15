@@ -54,8 +54,7 @@ Features:
 // Initialize logging flags on the root command
 err := pkg.InitGlazed("myapp", rootCmd)
 
-// Deprecated Viper helpers (will be removed in a future release):
-// err := pkg.InitViper("myapp", rootCmd)
+// Deprecated Viper helpers:
 // err := pkg.InitViperWithAppName("myapp", "config.yaml")
 // v, err := pkg.InitViperInstanceWithAppName("myapp", "")
 ```
