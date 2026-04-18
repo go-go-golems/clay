@@ -1,12 +1,14 @@
 package repositories
 
 import (
+	"testing"
+
 	"github.com/go-go-golems/clay/pkg/repositories/trie"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
+	"github.com/go-go-golems/glazed/pkg/cmds/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestEmptyNode(t *testing.T) {
@@ -25,6 +27,7 @@ func MakeTestCommand(parents []string, name string) cmds.Command {
 	description := &cmds.CommandDescription{
 		Name:    name,
 		Parents: parents,
+		Schema:  schema.NewSchema(),
 	}
 	return &TestCommand{description}
 }
@@ -488,4 +491,25 @@ func TestCollectCommandsNonRecursiveTwoLevels(t *testing.T) {
 	allNames = getNames(commands)
 	assert.Contains(t, allNames, "test4")
 
+}
+
+func TestRepositoryAdd_ResolvesAliasUsingExplicitFullPath(t *testing.T) {
+	repo := NewRepository()
+
+	target := MakeTestCommand([]string{"code"}, "go")
+	repo.Add(target)
+
+	aliasCmd := alias.NewCommandAlias(
+		alias.WithName("concise-doc"),
+		alias.WithParents("code", "go"),
+		alias.WithAliasForPath("code", "go"),
+	)
+
+	repo.Add(aliasCmd)
+
+	resolved, ok := repo.Root.FindCommand([]string{"code", "go", "concise-doc"})
+	require.True(t, ok, "expected alias command to be inserted under its nested parent path")
+	resolvedAlias, ok := resolved.(*alias.CommandAlias)
+	require.True(t, ok, "expected inserted command to be an alias")
+	require.Same(t, target, resolvedAlias.AliasedCommand)
 }

@@ -244,11 +244,11 @@ func (r *Repository) Add(commands ...cmds.Command) {
 
 	for _, alias_ := range aliases {
 		prefix := alias_.Parents
-		aliasedCommandPath := append(append([]string{}, prefix...), alias_.AliasFor)
+		aliasedCommandPath := alias_.ResolveAliasedCommandPath()
 		aliasedCommand, ok := r.Root.FindCommand(aliasedCommandPath)
 		if !ok {
 			name := alias_.Name
-			log.Warn().Msgf("alias %s (prefix: %v, source %s) for %s not found", name, prefix, alias_.Source, alias_.AliasFor)
+			log.Warn().Msgf("alias %s (prefix: %v, source %s) for %s not found", name, prefix, alias_.Source, strings.Join(aliasedCommandPath, " "))
 			continue
 		}
 		alias_.AliasedCommand = aliasedCommand
