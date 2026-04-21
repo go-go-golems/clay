@@ -10,10 +10,10 @@ require (
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/duckdb/duckdb-go/v2 v2.10501.0
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/go-go-golems/glazed v1.2.2
+	github.com/go-go-golems/glazed v1.2.3
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gorilla/websocket v1.5.3
-	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jackc/pgx/v5 v5.9.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/pkg/errors v0.9.1

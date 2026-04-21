@@ -227,6 +227,15 @@ func TestTwoWrites(t *testing.T) {
 				_ = f.Close()
 			}(f)
 
+			// Sync and wait so the watcher has time to process the CREATE event
+			// and register an individual file watch before we write. Without this,
+			// the rapid CREATE+WRITE can be coalesced by inotify or the WRITE
+			// event is never generated because the file isn't individually watched yet.
+			if err := f.Sync(); err != nil {
+				return err
+			}
+			time.Sleep(100 * time.Millisecond)
+
 			log.Debug().Msgf("writing to file %s", expectedPath)
 			_, err = f.WriteString("hello world")
 			if err != nil {
