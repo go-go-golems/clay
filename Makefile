@@ -1,8 +1,11 @@
-.PHONY: all test build lint lintmax docker-lint gosec govulncheck goreleaser tag-major tag-minor tag-patch release bump-glazed install
+.PHONY: all test build lint lintmax docker-lint golangci-lint-install gosec govulncheck goreleaser tag-major tag-minor tag-patch release bump-glazed install
 
 all: test build
 
 VERSION=v0.1.14
+
+GOLANGCI_LINT_VERSION ?= $(shell cat .golangci-lint-version)
+GOLANGCI_LINT_BIN ?= $(CURDIR)/.bin/golangci-lint
 
 CACHE_DIR := $(CURDIR)/.cache
 LINT_GOCACHE := $(CACHE_DIR)/go-build
@@ -13,15 +16,19 @@ gifs: $(TAPES)
 	for i in $(TAPES); do vhs < $$i; done
 
 docker-lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v2.3.0 golangci-lint run -v ./...
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:$(GOLANGCI_LINT_VERSION) golangci-lint run -v ./...
 
-lint:
-	mkdir -p $(LINT_GOCACHE) $(LINT_XDG_CACHE_HOME)
-	XDG_CACHE_HOME=$(LINT_XDG_CACHE_HOME) GOCACHE=$(LINT_GOCACHE) golangci-lint run -v ./...
+golangci-lint-install:
+	mkdir -p $(dir $(GOLANGCI_LINT_BIN))
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(dir $(GOLANGCI_LINT_BIN)) $(GOLANGCI_LINT_VERSION)
 
-lintmax:
+lint: golangci-lint-install
 	mkdir -p $(LINT_GOCACHE) $(LINT_XDG_CACHE_HOME)
-	XDG_CACHE_HOME=$(LINT_XDG_CACHE_HOME) GOCACHE=$(LINT_GOCACHE) golangci-lint run -v --max-same-issues=100 ./...
+	XDG_CACHE_HOME=$(LINT_XDG_CACHE_HOME) GOCACHE=$(LINT_GOCACHE) $(GOLANGCI_LINT_BIN) run -v ./...
+
+lintmax: golangci-lint-install
+	mkdir -p $(LINT_GOCACHE) $(LINT_XDG_CACHE_HOME)
+	XDG_CACHE_HOME=$(LINT_XDG_CACHE_HOME) GOCACHE=$(LINT_GOCACHE) $(GOLANGCI_LINT_BIN) run -v --max-same-issues=100 ./...
 
 test:
 	go test ./...
