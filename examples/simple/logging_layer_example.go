@@ -56,7 +56,7 @@ func NewExampleCommand() (*ExampleCommand, error) {
 			"example",
 			cmds.WithShort("Example command showing logging layer usage"),
 			cmds.WithLong("This command demonstrates how to use the logging layer in a Glazed command. "+
-				"It supports various logging formats, levels, and outputs including file and Logstash integration."),
+				"It supports various logging formats, levels, and file output."),
 			cmds.WithSections(glazedSection),
 		),
 	}
@@ -76,8 +76,7 @@ func main() {
 The logging layer supports:
 - Different log levels (debug, info, warn, error, fatal)
 - Various output formats (text, json)
-- File logging with rotation
-- Logstash integration for centralized logging`,
+- File logging with rotation`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := logging.InitLoggerFromCobra(cmd)
 			if err != nil {
@@ -158,9 +157,6 @@ The logging layer supports:
 		Use JSON format:
 		$ go run examples/logging_layer_example.go example --log-format json
 
-		Log to Logstash:
-		$ go run examples/logging_layer_example.go example --logstash-enabled --logstash-host localhost --logstash-port 5044 --app-name "my-app" --environment development
 
-		For a dedicated Logstash example, see logstash_example.go
 	*/
 }
