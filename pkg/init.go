@@ -12,9 +12,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Deprecated: Use Glazed middlewares for config/env and InitGlazed for setup.
+// Deprecated: config loading is Glazed territory now. Use Glazed's
+// cli.CobraParserConfig with AppName for environment variables and a
+// ConfigPlanBuilder / config sources for files instead of initializing Viper
+// through Clay. For logging, add Glazed's logging section directly with
+// logging.AddLoggingSectionToRootCommand(rootCmd, appName) and initialize it in
+// PersistentPreRunE with logging.InitLoggerFromCobra(cmd).
 func InitViperWithAppName(appName string, configFile string) error {
-	log.Warn().Msg("clay.InitViperWithAppName is deprecated; use Glazed middlewares and InitGlazed")
+	log.Warn().Msg("clay.InitViperWithAppName is deprecated; use Glazed CobraParserConfig/config sources and Glazed logging setup directly")
 	viper.SetEnvPrefix(appName)
 
 	if configFile != "" {
@@ -46,7 +51,10 @@ func InitViperWithAppName(appName string, configFile string) error {
 	return nil
 }
 
-// Deprecated: Avoid Viper instances for config parsing; use config middlewares.
+// Deprecated: config loading is Glazed territory now. Avoid Viper instances for
+// command configuration; use Glazed's cli.CobraParserConfig with AppName for
+// environment variables and a ConfigPlanBuilder / config sources for files.
+// Keep Clay imports only for Clay-specific packages such as pkg/sql.
 func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Viper, error) {
 	v := viper.New()
 	v.SetEnvPrefix(appName)
@@ -81,8 +89,19 @@ func InitViperInstanceWithAppName(appName string, configFile string) (*viper.Vip
 }
 
 // InitGlazed adds the logging section to the root command without wiring Viper.
-// Applications should configure Glazed middlewares via CobraParserConfig (AppName and explicit
-// config plans) when building commands, and initialize logging from parsed values.
+//
+// Deprecated: logging and command config setup are Glazed territory. Replace
+//
+//	clay.InitGlazed(appName, rootCmd)
+//
+// with
+//
+//	logging.AddLoggingSectionToRootCommand(rootCmd, appName)
+//
+// from github.com/go-go-golems/glazed/pkg/cmds/logging, and keep initializing
+// logging in PersistentPreRunE with logging.InitLoggerFromCobra(cmd). Configure
+// environment variables and config files through Glazed's cli.CobraParserConfig
+// (AppName plus ConfigPlanBuilder / config sources), not through Clay/Viper.
 func InitGlazed(appName string, rootCmd *cobra.Command) error {
 	return logging.AddLoggingSectionToRootCommand(rootCmd, appName)
 }
