@@ -6,7 +6,6 @@ import (
 	"github.com/blevesearch/bleve/v2"
 	"github.com/go-go-golems/clay/pkg/filters/command/builder"
 	"github.com/go-go-golems/glazed/pkg/cmds"
-	"github.com/rs/zerolog/log"
 )
 
 // CommandIndex manages the in-memory Bleve index for command filtering

@@ -10,7 +10,6 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
 	"github.com/go-go-golems/glazed/pkg/cmds/loaders"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 // getProcessedPaths takes a path and returns the processed paths needed for command operations

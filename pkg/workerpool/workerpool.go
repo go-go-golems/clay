@@ -1,7 +1,6 @@
 package workerpool
 
 import (
-	"github.com/rs/zerolog/log"
 	"sync"
 )
 

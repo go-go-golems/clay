@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/go-go-golems/glazed/pkg/cmds/logging"
-	"github.com/rs/zerolog/log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

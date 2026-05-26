@@ -14,7 +14,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type DatabaseConfig struct {

@@ -10,7 +10,6 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type WriteCallback func(path string) error

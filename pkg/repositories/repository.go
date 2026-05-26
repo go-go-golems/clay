@@ -17,7 +17,6 @@ import (
 	"github.com/go-go-golems/glazed/pkg/help"
 
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 // A repository is a collection of commands and aliases, that can optionally be reloaded

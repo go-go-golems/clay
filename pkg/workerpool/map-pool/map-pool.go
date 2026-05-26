@@ -1,7 +1,6 @@
 package map_pool
 
 import (
-	"github.com/rs/zerolog/log"
 	"sync"
 )
 

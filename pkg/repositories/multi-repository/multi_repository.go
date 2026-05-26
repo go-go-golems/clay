@@ -12,7 +12,6 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/help"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
 

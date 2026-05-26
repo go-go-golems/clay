@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	zlog "github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sync/errgroup"
 	"os"
@@ -16,7 +16,7 @@ var tempDir string
 
 func TestMain(m *testing.M) {
 	// set logging level to debug
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
+	zlog.Logger = zlog.Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
 
 	// create a temporary directory.
 	dir, err := os.MkdirTemp("", "clay")

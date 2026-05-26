@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/alias"
-	"github.com/rs/zerolog/log"
 )
 
 type TrieNode struct {

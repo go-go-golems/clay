@@ -1,4 +1,4 @@
-.PHONY: all test build lint lintmax docker-lint golangci-lint-install gosec govulncheck goreleaser tag-major tag-minor tag-patch release bump-glazed install
+.PHONY: all test build lint lintmax docker-lint golangci-lint-install gosec govulncheck goreleaser tag-major tag-minor tag-patch release bump-glazed install logcopter-generate logcopter-check
 
 all: test build
 
@@ -36,6 +36,12 @@ test:
 build:
 	go generate ./...
 	go build ./...
+
+logcopter-generate:
+	go generate ./...
+
+logcopter-check:
+	go tool logcopter-gen -area-prefix go-go-golems.clay -strip-prefix github.com/go-go-golems/clay -check ./pkg/...
 
 tag-major:
 	git tag $(shell svu major)
