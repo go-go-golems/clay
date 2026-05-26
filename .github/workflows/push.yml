@@ -19,11 +19,11 @@ jobs:
           go-version-file: go.mod
           cache: true
       -
-        name: generate assets
-        run: go generate ./...
-      -
         name: verify logcopter package loggers
         run: go tool logcopter-gen -area-prefix go-go-golems.clay -strip-prefix github.com/go-go-golems/clay -check ./pkg/...
+      -
+        name: generate assets
+        run: go generate ./...
       -
         name: run unit tests
         run: go test ./...
