@@ -58,6 +58,7 @@ release:
 
 bump-glazed:
 	go get github.com/go-go-golems/glazed@latest
+	go get github.com/go-go-golems/logcopter@latest
 	go mod tidy
 
 install:
