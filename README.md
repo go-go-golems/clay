@@ -43,20 +43,33 @@ Clay provides essential utilities and helper packages that solve common developm
 ## Packages
 
 ### ⚙️ Configuration (`pkg/init.go`)
-Helpers for wiring logging flags to Cobra. Viper-based helpers are deprecated; prefer Glazed middlewares for config files and environment variables.
+Clay's root logging/config initialization helpers are deprecated. Logging and command configuration belong in Glazed; keep Clay imports for Clay-specific packages such as `pkg/sql`, repositories, file walking, or YAML editing.
 
-Features:
-- Logging layer flags for Cobra root commands
-- Early logger initialization via `logging.InitLoggerFromCobra`
-- Use Glazed middlewares for config loading (`LoadParametersFromFiles`, `UpdateFromEnv`)
+Porting guide:
+
+- Replace `pkg.InitGlazed("myapp", rootCmd)` with `logging.AddLoggingSectionToRootCommand(rootCmd, "myapp")` from `github.com/go-go-golems/glazed/pkg/cmds/logging`.
+- Keep logging initialization in Cobra `PersistentPreRunE` with `logging.InitLoggerFromCobra(cmd)`.
+- Replace `pkg.InitViperWithAppName` and `pkg.InitViperInstanceWithAppName` with Glazed command parsing configuration: use `cli.CobraParserConfig{AppName: "myapp", ConfigPlanBuilder: ...}` plus Glazed config sources/plans for files.
+- Do not add new Clay dependencies just for logging flags, env loading, or config-file loading.
 
 ```go
-// Initialize logging flags on the root command
-err := pkg.InitGlazed("myapp", rootCmd)
+import (
+    "github.com/go-go-golems/glazed/pkg/cmds/logging"
+    "github.com/spf13/cobra"
+)
 
-// Deprecated Viper helpers:
-// err := pkg.InitViperWithAppName("myapp", "config.yaml")
-// v, err := pkg.InitViperInstanceWithAppName("myapp", "")
+var rootCmd = &cobra.Command{
+    Use: "myapp",
+    PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+        return logging.InitLoggerFromCobra(cmd)
+    },
+}
+
+func main() {
+    err := logging.AddLoggingSectionToRootCommand(rootCmd, "myapp")
+    cobra.CheckErr(err)
+    cobra.CheckErr(rootCmd.Execute())
+}
 ```
 
 Recommended config file handling is implemented in your application via Glazed middlewares and resolvers (see Glazed docs: `config-files` topic).

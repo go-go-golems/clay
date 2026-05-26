@@ -7,7 +7,6 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
-	"github.com/rs/zerolog/log"
 )
 
 // Builder provides methods for creating command filters

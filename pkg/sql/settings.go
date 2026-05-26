@@ -8,7 +8,6 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 //go:embed "flags/sql-connection.yaml"

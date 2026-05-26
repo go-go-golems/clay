@@ -19,6 +19,9 @@ jobs:
           go-version-file: go.mod
           cache: true
       -
+        name: verify logcopter package loggers
+        run: go tool logcopter-gen -area-prefix go-go-golems.clay -strip-prefix github.com/go-go-golems/clay -check ./pkg/...
+      -
         name: generate assets
         run: go generate ./...
       -

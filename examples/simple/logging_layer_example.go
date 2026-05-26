@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-go-golems/clay/pkg"
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/logging"
@@ -89,7 +88,7 @@ The logging layer supports:
 	}
 
 	// Initialize logging flags on the root command (no Viper)
-	err := pkg.InitGlazed("logging-example", rootCmd)
+	err := logging.AddLoggingSectionToRootCommand(rootCmd, "logging-example")
 	if err != nil {
 		fmt.Printf("Error initializing viper: %v\n", err)
 		os.Exit(1)

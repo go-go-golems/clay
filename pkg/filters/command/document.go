@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/go-go-golems/glazed/pkg/cmds"
-	"github.com/rs/zerolog/log"
 )
 
 // commandDocument represents the structure used for indexing commands in Bleve
