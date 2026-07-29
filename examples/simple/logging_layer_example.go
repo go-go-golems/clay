@@ -10,7 +10,6 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/logging"
 	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/go-go-golems/glazed/pkg/middlewares"
-	"github.com/go-go-golems/glazed/pkg/settings"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
@@ -45,10 +44,6 @@ func (c *ExampleCommand) RunIntoGlazeProcessor(
 
 // NewExampleCommand creates a new example command
 func NewExampleCommand() (*ExampleCommand, error) {
-	glazedSection, err := settings.NewGlazedSection()
-	if err != nil {
-		return nil, err
-	}
 
 	cmd := &ExampleCommand{
 		CommandDescription: cmds.NewCommandDescription(
@@ -56,7 +51,7 @@ func NewExampleCommand() (*ExampleCommand, error) {
 			cmds.WithShort("Example command showing logging layer usage"),
 			cmds.WithLong("This command demonstrates how to use the logging layer in a Glazed command. "+
 				"It supports various logging formats, levels, and file output."),
-			cmds.WithSections(glazedSection),
+			cmds.WithSections(),
 		),
 	}
 
