@@ -40,13 +40,11 @@ func newListCommand(
 	addFunc AddCommandToRowFunc,
 ) (*ListCommand, error) {
 	// Create glazed section for output formatting
-	glazedSection, err := settings.NewGlazedSection(
+	glazedSection, err := settings.NewStructuredOutputSection(
 		// Set default fields for the table output
-		settings.WithFieldsFiltersSectionOptions(
-			schema.WithDefaults(&settings.FieldsFilterFlagsDefaults{
-				Fields: []string{"path", "type", "short", "tags", "source"},
-			}),
-		),
+		schema.WithDefaults(map[string]interface{}{
+			"output-fields": []string{"path", "type", "short", "tags", "source"},
+		}),
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create Glazed section")
