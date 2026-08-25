@@ -167,6 +167,17 @@ Features:
 - Integration with dbt project structures
 - Query helper functions like `sqlStringIn`, `sqlDate`, etc.
 
+Clay registers the MySQL, pgx, and SQLite drivers automatically. DuckDB is
+optional because its native bindings are large and platform-specific. Programs
+that use DuckDB must register its driver explicitly:
+
+```go
+import (
+    _ "github.com/duckdb/duckdb-go/v2"
+    "github.com/go-go-golems/clay/pkg/sql"
+)
+```
+
 ```go
 // Basic configuration
 config := &sql.DatabaseConfig{

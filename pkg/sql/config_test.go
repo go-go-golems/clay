@@ -1,6 +1,17 @@
 package sql
 
-import "testing"
+import (
+	databaseSQL "database/sql"
+	"testing"
+)
+
+func TestDuckDBDriverIsOptIn(t *testing.T) {
+	for _, driver := range databaseSQL.Drivers() {
+		if driver == "duckdb" {
+			t.Fatal("pkg/sql must not register the DuckDB driver implicitly")
+		}
+	}
+}
 
 func TestNormalizeDuckDBDSN(t *testing.T) {
 	tests := []struct {

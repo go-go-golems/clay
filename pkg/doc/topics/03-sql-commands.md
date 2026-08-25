@@ -28,6 +28,17 @@ To use the SQL functionality in your project, import the package:
 import "github.com/go-go-golems/clay/pkg/sql"
 ```
 
+Clay registers the MySQL, pgx, and SQLite drivers automatically. DuckDB is an
+opt-in dependency because it ships large, platform-specific native bindings.
+Programs that connect to DuckDB must register its driver explicitly:
+
+```go
+import (
+    _ "github.com/duckdb/duckdb-go/v2"
+    "github.com/go-go-golems/clay/pkg/sql"
+)
+```
+
 ## Table of Contents
 
 1. Getting Started
