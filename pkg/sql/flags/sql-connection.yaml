@@ -35,7 +35,7 @@ flags:
     shortFlag: s
   - name: db-type
     type: string
-    help: "Database type (mysql, pgx, sqlite3, duckdb)"
+    help: "Database type (mysql, pgx, sqlite3, duckdb; DuckDB requires an explicit driver import)"
     default: mysql
     shortFlag: t
   - name: repository
