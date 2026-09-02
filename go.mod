@@ -8,7 +8,7 @@ require (
 	github.com/blevesearch/bleve/v2 v2.5.0
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
-	github.com/fsnotify/fsnotify v1.9.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-go-golems/glazed v1.4.2
 	github.com/go-go-golems/logcopter v0.1.0
 	github.com/go-sql-driver/mysql v1.9.3
