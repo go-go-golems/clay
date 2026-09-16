@@ -20,6 +20,7 @@ type FileFilter struct {
 	ExcludeExts           []string               `yaml:"exclude-exts,omitempty"`
 	MatchFilenames        []*regexp.Regexp       `yaml:"match-filenames,omitempty"`
 	MatchPaths            []*regexp.Regexp       `yaml:"match-paths,omitempty"`
+	IncludeDirs           []string               `yaml:"include-dirs,omitempty"`
 	ExcludeDirs           []string               `yaml:"exclude-dirs,omitempty"`
 	GitIgnoreFilter       gitignore.GitIgnore    `yaml:"-"`
 	DisableGitIgnore      bool                   `yaml:"disable-gitignore,omitempty"`
@@ -84,6 +85,12 @@ func WithMatchPaths(patterns []string) FileFilterOption {
 func WithExcludeDirs(dirs []string) FileFilterOption {
 	return func(ff *FileFilter) {
 		ff.ExcludeDirs = dirs
+	}
+}
+
+func WithIncludeDirs(dirs []string) FileFilterOption {
+	return func(ff *FileFilter) {
+		ff.IncludeDirs = dirs
 	}
 }
 
@@ -160,6 +167,7 @@ func (ff *FileFilter) PrintConfiguredFilters() {
 	fmt.Printf("  Max File Size: %d bytes\n", ff.MaxFileSize)
 	fmt.Printf("  Include Extensions: %v\n", ff.IncludeExts)
 	fmt.Printf("  Exclude Extensions: %v\n", ff.ExcludeExts)
+	fmt.Printf("  Include Directories: %v\n", ff.IncludeDirs)
 	fmt.Printf("  Match Filenames: %v\n", ff.MatchFilenames)
 	fmt.Printf("  Match Paths: %v\n", ff.MatchPaths)
 	fmt.Printf("  Exclude Directories: %v\n", ff.ExcludeDirs)
@@ -206,16 +214,73 @@ func (ff *FileFilter) FilterPath(filePath string) bool {
 	return result
 }
 
+// splitPathSegments splits a path into its individual segments on both "/" and
+// "\", so that directory matching works identically on POSIX and Windows paths.
+// Empty segments (from leading/trailing/repeated separators) are dropped.
+func splitPathSegments(path string) []string {
+	path = strings.ReplaceAll(path, "\\", "/")
+	segments := make([]string, 0, 8)
+	for _, segment := range strings.Split(path, "/") {
+		if segment != "" {
+			segments = append(segments, segment)
+		}
+	}
+	return segments
+}
+
+// segmentGlobMatch reports whether the glob pattern matches any single path
+// segment. filepath.Match never lets "*" cross a separator, so patterns like
+// "build" only match a directory literally named "build", while "build*" and
+// "*build*" opt into prefix and substring semantics respectively.
+// Malformed patterns are expected to have been rejected by Validate;
+// match errors are treated as non-matches here.
+func segmentGlobMatch(segments []string, pattern string) bool {
+	for _, segment := range segments {
+		if ok, err := filepath.Match(pattern, segment); err == nil && ok {
+			return true
+		}
+	}
+	return false
+}
+
+// Validate checks that all directory patterns (default, include and exclude)
+// are well-formed glob patterns, so that malformed user input fails loudly at
+// filter construction time instead of silently never matching.
+func (ff *FileFilter) Validate() error {
+	patterns := make([]string, 0, len(ff.DefaultExcludedDirs)+len(ff.IncludeDirs)+len(ff.ExcludeDirs))
+	if !ff.DisableDefaultFilters {
+		patterns = append(patterns, ff.DefaultExcludedDirs...)
+	}
+	patterns = append(patterns, ff.IncludeDirs...)
+	patterns = append(patterns, ff.ExcludeDirs...)
+
+	for _, pattern := range patterns {
+		if _, err := filepath.Match(pattern, "x"); err != nil {
+			return fmt.Errorf("invalid directory glob pattern %q: %w", pattern, err)
+		}
+	}
+	return nil
+}
+
 func (ff *FileFilter) isExcludedDir(dirPath string) bool {
+	segments := splitPathSegments(dirPath)
+
+	// Include patterns win over both default and user exclude patterns.
+	for _, includePattern := range ff.IncludeDirs {
+		if segmentGlobMatch(segments, includePattern) {
+			return false
+		}
+	}
+
 	if !ff.DisableDefaultFilters {
 		for _, excludedDir := range ff.DefaultExcludedDirs {
-			if strings.Contains(dirPath, excludedDir) {
+			if segmentGlobMatch(segments, excludedDir) {
 				return true
 			}
 		}
 	}
 	for _, excludedDir := range ff.ExcludeDirs {
-		if strings.Contains(dirPath, excludedDir) {
+		if segmentGlobMatch(segments, excludedDir) {
 			return true
 		}
 	}
@@ -383,6 +448,13 @@ func FromYAML(data []byte) (*FileFilter, error) {
 		if profile.MaxFileSize == 0 {
 			profile.MaxFileSize = ff.MaxFileSize
 		}
+		if err := profile.Validate(); err != nil {
+			return nil, fmt.Errorf("invalid profile: %w", err)
+		}
+	}
+
+	if err := ff.Validate(); err != nil {
+		return nil, err
 	}
 
 	return ff, nil

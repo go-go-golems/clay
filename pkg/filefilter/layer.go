@@ -18,6 +18,7 @@ type FileFilterSettings struct {
 	Exclude               []string `glazed:"exclude"`
 	MatchFilename         []string `glazed:"match-filename"`
 	MatchPath             []string `glazed:"match-path"`
+	IncludeDirs           []string `glazed:"include-dirs"`
 	ExcludeDirs           []string `glazed:"exclude-dirs"`
 	ExcludeMatchFilename  []string `glazed:"exclude-match-filename"`
 	ExcludeMatchPath      []string `glazed:"exclude-match-path"`
@@ -77,8 +78,14 @@ func NewFileFilterSection() (schema.Section, error) {
 			fields.New(
 				"exclude-dirs",
 				fields.TypeStringList,
-				fields.WithHelp("List of directories to exclude"),
+				fields.WithHelp("Glob patterns matched against individual directory names (e.g. build, dist, *cache*)"),
 				fields.WithShortFlag("x"),
+			),
+			fields.New(
+				"include-dirs",
+				fields.TypeStringList,
+				fields.WithHelp("Glob patterns of directory names to always include, overriding default and exclude-dirs patterns (e.g. build, builder-*)"),
+				fields.WithShortFlag("I"),
 			),
 			fields.New(
 				"exclude-match-filename",
@@ -123,6 +130,7 @@ func CreateFileFilterFromSettings(parsedSection *values.SectionValues) (*FileFil
 	ff.ExcludeExts = s.Exclude
 	ff.MatchFilenames = compileRegexps(s.MatchFilename)
 	ff.MatchPaths = compileRegexps(s.MatchPath)
+	ff.IncludeDirs = s.IncludeDirs
 	ff.ExcludeDirs = s.ExcludeDirs
 	ff.ExcludeMatchFilenames = compileRegexps(s.ExcludeMatchFilename)
 	ff.ExcludeMatchPaths = compileRegexps(s.ExcludeMatchPath)
@@ -130,6 +138,10 @@ func CreateFileFilterFromSettings(parsedSection *values.SectionValues) (*FileFil
 	ff.DisableDefaultFilters = s.DisableDefaultFilters
 	ff.Verbose = s.Verbose
 	ff.FilterBinaryFiles = s.FilterBinary
+
+	if err := ff.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid file filter settings: %w", err)
+	}
 
 	if !ff.DisableGitIgnore {
 		gitIgnoreFilter, err := initGitIgnoreFilter()

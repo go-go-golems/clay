@@ -100,18 +100,41 @@ ff := filefilter.NewFileFilter(
 )
 ```
 
-## Directory Exclusion
+## Directory Exclusion and Inclusion
+
+Directory patterns are **globs matched against individual path segments** (using
+`filepath.Match`), never substrings of the whole path. A pattern like `build`
+only excludes a directory literally named `build`:
 
 ```go
 ff := filefilter.NewFileFilter(
     filefilter.WithExcludeDirs([]string{
-        "node_modules",
-        "vendor",
-        ".git",
-        "build",
+        "node_modules", // only a directory named exactly "node_modules"
+        ".git",         // dots are literal in globs: matches only ".git"
+        "vendor",       // only a directory named exactly "vendor"
+        "build",       // only a directory named exactly "build" (NOT builder-api)
+        "*cache*",     // opt into substring-style matching with globs
     }),
 )
 ```
+
+Because `*` does not cross path separators in `filepath.Match`, prefix and
+substring semantics remain available explicitly: `build*` matches `builder-api`,
+`*build*` matches `rebuild`. Malformed patterns are rejected by `Validate()`,
+which is called automatically when building a filter from CLI settings or YAML.
+
+Directories can also be force-included, overriding both default and user
+exclude patterns. Include patterns win over everything:
+
+```go
+ff := filefilter.NewFileFilter(
+    filefilter.WithExcludeDirs([]string{"api"}),
+    filefilter.WithIncludeDirs([]string{"builder-*"}), // beats exclude-dirs and defaults
+)
+```
+
+The equivalent CLI flags are `--include-dirs` / `--exclude-dirs`, and the YAML
+fields are `include-dirs` / `exclude-dirs`.
 
 ## GitIgnore Integration
 
